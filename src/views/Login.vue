@@ -173,7 +173,7 @@ export default {
   methods: {
     //测试功能
     test() {
-      let url = 'http://106.15.179.2:8080/staff/all'
+      let url = 'https://106.15.179.2:8080/staff/all'
       this.axios.get(url).then((response) => {
         console.log(response)
       })
