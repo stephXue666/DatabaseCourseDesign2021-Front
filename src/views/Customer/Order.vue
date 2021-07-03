@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-header style="padding: 0">
-      <top-nav/>
+      <TopNav/>
     </el-header>
     <el-main>
       <!--这里写代码-->

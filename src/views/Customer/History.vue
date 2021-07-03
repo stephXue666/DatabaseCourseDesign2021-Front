@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-header style="padding: 0">
-      <top-nav/>
+      <TopNav/>
     </el-header>
     <el-main>
       <!--这里写代码-->
@@ -17,17 +17,7 @@ import TopNav from "../../components/TopNav";
 export default {
 	components: {
     TopNav,
-	},
-  created() {
+	}
 
-  },
-  data() {
-    return {
-
-    }
-  },
-  methods: {
-
-  },
 }
 </script>
