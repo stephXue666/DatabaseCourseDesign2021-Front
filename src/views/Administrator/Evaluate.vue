@@ -5,7 +5,7 @@
     </el-header>
     <el-container style="height: 100%" >
       <el-aside width="200px" style="background-color: #545c64">
-        <SideNav/>
+        <side-nav/>
       </el-aside>
       <el-main>
         <el-card class="box-card">
