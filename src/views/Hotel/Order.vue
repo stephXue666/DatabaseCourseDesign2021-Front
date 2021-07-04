@@ -282,47 +282,79 @@
           <el-dialog
             title="订单详情"
             v-model="dialogVisible"
-            width="30%">
-            <p align="left">
-              <i class="el-icon-s-order"></i>
-              订单号:   {{ detailedInfo.orderID }}
-            </p>
-            <p align="left">
-              <i class="el-icon-user"></i>
-              用户账号: {{ detailedInfo.userID }}
-            </p>
-            <p align="left">
-              <i class="el-icon-s-custom"></i>
-              预定人:   {{ detailedInfo.reserveName }}
-            </p>
-            <p align="left">
-              <i class="el-icon-school"></i>
-              房间类型: {{ detailedInfo.roomType }}
-            </p>
-            <p align="left">
-              <i class="el-icon-office-building"></i>
-              房间数量: {{ detailedInfo.roomNum }}
-            </p>
-            <p align="left">
-              <i class="el-icon-time"></i>
-              入住时间: {{ detailedInfo.enterDate }}
-            </p>
-            <p align="left">
-              <i class="el-icon-time"></i>
-              离开时间: {{ detailedInfo.exitDate }}
-            </p>
-            <p align="left">
-              <i class="el-icon-bank-card"></i>
-              付款金额: {{ detailedInfo.payAmount }}
-            </p>
-            <p align="left">
-              <i class="el-icon-timer"></i>
-              付款时间: {{ detailedInfo.payTime }}
-            </p>
-            <p align="left">
-              <i class="el-icon-phone"></i>
-              联系电话: {{ detailedInfo.phoneNum }}
-            </p>
+            width="50%">
+            <el-descriptions :column="2" border="true">
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-s-order"></i>
+                订单号
+              </template>
+              {{ detailedInfo.orderID }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-user"></i>
+                用户账号
+              </template>
+              {{ detailedInfo.userID }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-s-custom"></i>
+                预定人姓名
+              </template>
+              {{ detailedInfo.reserveName }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-school"></i>
+                房间类型
+              </template>
+              <el-tag size="small">{{ detailedInfo.roomType }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-office-building"></i>
+                房间数量
+              </template>
+              {{ detailedInfo.roomNum }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-time"></i>
+                入住时间
+              </template>
+              {{ detailedInfo.enterDate }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-time"></i>
+                离开时间
+              </template>
+              {{ detailedInfo.exitDate }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-bank-card"></i>
+                付款金额
+              </template>
+              {{ detailedInfo.payAmount }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-timer"></i>
+                付款时间
+              </template>
+              {{ detailedInfo.payTime }}
+            </el-descriptions-item>
+            <el-descriptions-item>
+              <template #label>
+                <i class="el-icon-phone"></i>
+                联系电话
+              </template>
+              {{ detailedInfo.phoneNum }}
+            </el-descriptions-item>
+            </el-descriptions>
             <template #footer>
               <span class="dialog-footer">
                 <el-button type="primary" @click="dialogVisible = false" size="small">确 定</el-button>
