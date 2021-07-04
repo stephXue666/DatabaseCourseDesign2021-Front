@@ -9,8 +9,19 @@
       </el-aside>
       <el-main>
         <el-card class="box-card">
-          <!--这里写代码-->
-          <h3>流水统计页面</h3>
+          <el-tabs v-model="tabActiveName" @tab-click="tabClicked">
+            <el-tab-pane 
+            :key="item.tabName"
+            v-for="item in tabData"
+            :label="item.tabName"
+            :name="item.tabName">
+              <h3>
+                {{ item.tabName }} 全年营业额共 {{ separateNum(Math.floor(item.turnover)) }} 元
+              </h3>
+              <el-card shadow="hover" :id="'calendarChart-'+item.tabName" style="width:100%; height:230px;"></el-card>
+              <el-card shadow="hover" :id="'lineChart-'+item.tabName" style="width:100%; height:400px;"></el-card>
+            </el-tab-pane>
+          </el-tabs>
         </el-card>
       </el-main>
     </el-container>
@@ -19,20 +30,277 @@
 
 <script>
 import SideNav from "../../components/SideNav";
-import BackNav from "../../components/BackNav"
+import BackNav from "../../components/BackNav";
+
+// 导入图包
+import * as echarts from 'echarts/core';
+import {
+  CalendarComponent,
+  VisualMapComponent,
+  GridComponent,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent
+} from 'echarts/components';
+import {
+  LineChart,
+  HeatmapChart
+} from 'echarts/charts';
+import {
+  CanvasRenderer
+} from 'echarts/renderers';
+
+echarts.use(
+  [TitleComponent, TooltipComponent, CalendarComponent, VisualMapComponent,
+    HeatmapChart, CanvasRenderer, GridComponent, LineChart, LegendComponent]
+); 
 
 export default {
+
 	components: {
     SideNav,
     BackNav,
 	},
-  data() {
-    return {
 
+  computed: { // 用逗号分隔数字 (不知道为什么非要用闭包函数才能实现。。)
+    separateNum: function(){
+      return function(num){
+        let str = num.toString();
+        let counter = 0;
+        let result = "";
+        for(let j = str.length - 1; j >= 0; j--){
+          counter++;
+          result = str.charAt(j) + result;
+          if (!(counter % 3) && j != 0){ 
+            result = ',' + result;
+          }
+        }
+      return result;
+      }
     }
   },
-  methods: {
 
+  created(){
+    function initData(rawData){ // 生成假数据，在调用接口后去掉！！
+      let arr = [4,6,9,11];
+      for(let year = 2019; year<=2020; year++){
+        for(let month = 1; month<=12; month++){
+          for(let day = 1; day<=31; day++){
+            let oneData = {
+              date: "",
+              turnover: 0,
+              occRate: 0.01,
+            }
+            oneData.date = year.toString() + "-" + month.toString() + "-" + day.toString();
+            oneData.turnover = Math.random()*5000;
+            oneData.occRate = Math.random();
+            rawData.push(oneData);
+            if(day==28 && month==2)break;
+            if(day==30 && arr.indexOf(month)!=-1)break;
+          }
+        }
+      }
+    }
+    initData(this.rawData);
+
+    // 调用接口- 流水信息
+
+    let date, dateYear, yearDataFound;
+    for(let oneData of this.rawData) // 得到每年的营业额，即初始化tabData
+    {
+      date = new Date(oneData.date);
+
+      // 初始化tabData
+      dateYear = date.getFullYear(); // 得到原始数据中的年份信息
+      yearDataFound = this.tabData.find(item=>item.year===dateYear); // 在tabData中找此年份的信息
+      if(yearDataFound==undefined){ // 没找到年份
+        this.tabData.push({ // 加入此年份并添加流水金额。
+          year: dateYear,
+          tabName: dateYear.toString(),
+          turnover: oneData.turnover
+        });
+      }
+      else{
+        yearDataFound.turnover += oneData.turnover; // 找到年份则增加相应流水金额
+      }
+    }
+    this.tabData.sort((x,y)=>{ // 按year降序排序，使时间最近的年份显示在前面
+      return y.year - x.year;
+    });
+    this.tabActiveName = this.tabData[0].tabName;
   },
+
+  mounted(){
+    this.generateChartData(this.tabData[0].year);
+    this.drawCalendarChart(this.tabData[0].year);
+    this.drawLineChart(this.tabData[0].year);
+  },
+
+  data() {
+    return {
+      tabActiveName: "",
+      rawData: [], // 假数据 {date, turnover, accRate}
+      tabData: [], // 以年为单位的营业额统计数据 {year, tableName, turnover}
+      chartData: [], // 某年以天为单位的入住率 {date, accRate}
+    }
+  },
+
+  methods: {
+    tabClicked(whitchClicked){
+      let year = this.tabData[whitchClicked.index].year;
+      let myChart = echarts.getInstanceByDom(document.getElementById('calendarChart-'+year.toString()))
+      if (myChart == null) { // 如果不存在，就进行初始化
+        this.generateChartData(year);
+        setTimeout(() => { // 神坑！echart执行得太快导致css跟不上(计算width:100%)，需要延迟图表初始化才能正常显示
+          this.drawCalendarChart(year);
+          this.drawLineChart(year);
+        },50)
+      }
+    },
+
+    generateChartData(year){
+      let oneDate, oneYear;
+      for(let oneData of this.rawData){
+        oneDate = new Date(oneData.date);
+        oneYear = oneDate.getFullYear(); // 得到原始数据中的年份信息
+
+        if(year == oneYear){
+          this.chartData.push({ // 加入日历图数据
+            date: oneDate,
+            occRate: oneData.occRate,
+            turnover: oneData.turnover
+          });
+        }
+      }
+    },
+
+    drawCalendarChart(year){ // 日历图
+      let myChart = echarts.init(document.getElementById('calendarChart-'+year.toString()));
+      let option = {
+        title: { // 图表标题
+          top: "7%",
+          left: 'center',
+          text: '入住率日历图',
+          textStyle:{
+            fontStyle: 'oblique',
+            fontWeight: 'normal',
+            fontSize: 18
+          }
+        },
+        tooltip: { // 鼠标悬停时显示信息
+          trigger: 'axis',
+          formatter: function(params){
+            let dateParams = params[0].name.split('/')
+            let relVal = dateParams[0]+"月"+dateParams[1]+"日";
+            relVal += '<div class="circle" ><span style="background:'+params[1].color+'"></span>'+ params[1].seriesName + ' : ' + params[1].value+'%'+"</div>";
+            return relVal;
+          }
+        },
+        visualMap: { // 数值对应颜色
+          min: 0,
+          max: 1,
+          type: 'piecewise',
+          orient: 'horizontal',
+          left: 'center',
+          top: "22%"
+        },
+        calendar: { // 日历坐标系
+          top: "44%",
+          left: "8%",
+          right: "8%",
+          cellSize: ['auto', 13],
+          range: year,
+          itemStyle: {
+            borderWidth: 0.5
+          },
+          yearLabel: {show: true}
+        },
+        series: { // 热力图
+          name: '入住率',
+          type: 'heatmap',
+          coordinateSystem: 'calendar',
+          data: this.chartData.map((item)=>{return [item.date,item.occRate.toFixed(3)]})
+        }
+      };
+      myChart.setOption(option,true); 
+    },
+
+    drawLineChart(year){ // 折线图
+      let myChart = echarts.init(document.getElementById('lineChart-'+year.toString()));
+      
+      let option = {
+        grid:{ // 图表位置
+          top:"22%",
+          bottom: "10%",
+          left: "9%",
+          right: "9%"
+        },
+        title: { // 图表标题
+          top: "6%",
+          left: 'center',
+          text: '营业额与入住率折线图',
+          textStyle:{
+            fontStyle: 'oblique',
+            fontWeight: 'normal',
+            fontSize: 18
+          }
+        },
+        tooltip: { // 鼠标悬停时显示信息
+          trigger: 'axis',
+          formatter: function(params){
+            let unit = '元';
+            let dateParams = params[0].name.split('/')
+            let relVal = dateParams[0]+"月"+dateParams[1]+"日";
+            for (let i = 0; i < params.length; i++) {
+              if(i == 1) unit = '%'
+              relVal += '<div class="circle" ><span style="background:'+params[i].color+'"></span>'+ params[i].seriesName + ' : ' + params[i].value+unit+"</div>";
+            }
+            return relVal;
+          }
+        },
+        xAxis: { // x轴
+          type: 'category',
+          data: this.chartData.map((item)=>{
+            return (item.date.getMonth()+1) + '/' + item.date.getDate()
+          })
+        },
+        yAxis:[ // y轴(两个)
+          {
+            name: '营业额(元)',
+            type: 'value',
+          },
+          {
+            name: '入住率(%)',
+            type: 'value',
+            max: 100
+          }
+        ],
+        legend: { // 图例
+          data: ['营业额', '入住率'],
+          right: "6%",
+          top: "8%"
+        },
+        series:[ // 折线(两个)
+          {
+            name: '营业额',
+            type: 'line',
+            lineStyle: { width:1 },
+            showSymbol: false,
+            data: this.chartData.map((item)=>{return Math.floor(item.turnover)})
+          },
+          {
+            yAxisIndex: 1,
+            name: '入住率',
+            type: 'line',
+            lineStyle: { width:1 },
+            showSymbol: false,
+            data: this.chartData.map((item)=>{return (item.occRate*100).toFixed(2)})
+          }
+        ]
+      }; 
+
+      myChart.setOption(option);
+    }
+  }
 }
 </script>
