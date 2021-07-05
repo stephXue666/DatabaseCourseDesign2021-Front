@@ -9,7 +9,7 @@
 			</el-aside>
 			<el-main>
 				<el-card class="box-card">
-					<!--这里写代码-->
+					<!--待审核酒店列表-->
 					<h3>待审核酒店列表</h3>
 					<el-table :data="tableData" border style="width: 100%">
 						<el-table-column prop="hotelID" label="酒店ID" width="120">
@@ -31,39 +31,92 @@
 							</template>
 						</el-table-column>
 					</el-table>
+					<!--点击"查看"按钮，打开酒店详情页面-->
 					<el-dialog title="酒店详情" v-model="dialogAudit" width="30%">
-						<p align="left">
-							酒店ID: {{ detailedInfo.hotelID }} </p>
-						<p align="left">
-							酒店名: {{ detailedInfo.hotelName }} </p>
-						<p align="left">
-							所在省份: {{ detailedInfo.hotelProvince }} </p>
-						<p align="left">
-							所在城市: {{ detailedInfo.hotelCity }} </p>
-						<p align="left">
-							所在区: {{ detailedInfo.hotelRegion }} </p>
-						<p align="left">
-							详细地址: {{ detailedInfo.hotelAddress }} </p>
-						<p align="left">
-							卫生许可证: {{ detailedInfo.healthLicense }} </p>
-						<p align="left">
-							消防检查合格证: {{ detailedInfo.fireInspectionCertificate }} </p>
-						<p align="left">
-							餐饮服务经营许可证: {{ detailedInfo.cateringServiceLicense }} </p>
+						<el-descriptions class="margin-top" :column="2" :size="size" border>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-star-off"></i>
+									酒店ID
+								</template>
+								{{detailedInfo.hotelID}}
+							</el-descriptions-item>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-user"></i>
+									酒店名
+								</template>
+								{{ detailedInfo.hotelName }}
+							</el-descriptions-item>
+						</el-descriptions>
+						<el-descriptions class="margin-top" :column="3" :size="size" border>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-location"></i>
+									省
+								</template>
+								{{detailedInfo.hotelProvince}}
+							</el-descriptions-item>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-location-outline"></i>
+									市
+								</template>
+								{{ detailedInfo.hotelCity }}
+							</el-descriptions-item>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-location-information"></i>
+									区
+								</template>
+								{{ detailedInfo.hotelRegion }}
+							</el-descriptions-item>
+						</el-descriptions>
+						<el-descriptions class="margin-top" :column="1" :size="size" border>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-map-location"></i>
+									详细地址
+								</template>
+								{{ detailedInfo.hotelAddress }}
+							</el-descriptions-item>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-postcard"></i>
+									卫生许可证
+								</template>
+								{{ detailedInfo.healthLicense }}
+							</el-descriptions-item>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-postcard"></i>
+									消防检查合格证
+								</template>
+								{{ detailedInfo.fireInspectionCertificate }}
+							</el-descriptions-item>
+							<el-descriptions-item>
+								<template #label>
+									<i class="el-icon-postcard"></i>
+									餐饮服务经营许可证
+								</template>
+								{{ detailedInfo.cateringServiceLicense }}
+							</el-descriptions-item>
+						</el-descriptions>
 						<el-form label-position="formLabelPosition" :model="form">
-							<el-row class="autocompleteDescrip">
+							<el-row class="autocomplete">
 								<el-col :span="24">
-									<div style="position:relative;" class="sub-title">审核说明</div>
-									<el-autocomplete class="inputDescrip" v-model="dataDescrip"
-										:fetch-suggestions="querySearch" placeholder="请输入内容" @select="handleSelect">
+									<div class="sub-title">审核说明</div>
+									<el-autocomplete class="inline-input" v-model="dataDescrip"
+										v-bind:disabled="disabledDescrip" :fetch-suggestions="querySearch"
+										placeholder="请输入内容" @select="handleSelect">
 									</el-autocomplete>
 								</el-col>
 							</el-row>
 							<p></p>
 							<div class="sub-title">审核结果</div>
-							<el-select v-model="form.choice" placeholder="请选择审核结果">
-								<el-option label="审核驳回" value="false"></el-option>
-								<el-option label="审核通过" value="true"></el-option>
+							<el-select v-model="form.choice" placeholder="请选择审核结果" @change="auditSelect">
+								<el-option label="审核驳回" value=false></el-option>
+								<el-option label="审核通过" value=true></el-option>
 							</el-select>
 						</el-form>
 						<template #footer>
@@ -87,6 +140,7 @@
 		onMounted
 	} from 'vue'
 
+	//未审核酒店的基本信息
 	let hotelData = [{
 		hotelID: 1123456789,
 		hotelName: '7天优品',
@@ -186,6 +240,7 @@
 				},
 				formLabelWidth: '100px',
 				formLabelPosition: 'middle',
+				size: "",
 			}
 		},
 		setup() {
@@ -205,6 +260,7 @@
 					);
 				};
 			};
+			//"审核说明"输入框的建议列表数据
 			const loadAll = () => {
 				return [{
 						value: "卫生许可证无效"
@@ -234,8 +290,8 @@
 			});
 			return {
 				restaurants,
-				state1: ref(''),
-				state2: ref(''),
+				dataDescrip: ref(''),
+				disabledDescrip: false,
 				querySearch,
 				createFilter,
 				loadAll,
@@ -243,16 +299,32 @@
 			};
 		},
 		methods: {
+			//当点击"查看"按钮时，打开酒店详情弹框
 			handleClick(row) {
-				console.log(row);
+				console.log('选择了', row);
 				this.detailedInfo = row;
 				this.dialogAudit = true;
 			},
+			//当选择了"审核结果"的某个选项时，调用此函数
+			auditSelect() {
+				console.log('选择了', this.form.choice);
+				if (this.form.choice == 'true') { 				//如果选择了"审核通过"，则屏蔽"审核说明"输入框
+					console.log('选择', this.form.choice);
+					this.disabledDescrip = true;
+					this.dataDescrip = "通过无需说明";
+				} else if (this.dataDescrip == "通过无需说明") { //如果选择了"审核驳回"且输入框内容是"通过无需说明"，则解除屏蔽"审核说明"输入框，并清空
+					console.log('选择', this.form.choice);
+					this.disabledDescrip = false					
+					this.dataDescrip = "";
+				}
+			},
 			submitClick() {
-				console.log(this.dataDescrip,this.form.choice);
+				console.log(this.dataDescrip, this.form.choice);
 				console.log(this.detailedInfo.hotelID);
-				this.dialogAudit = false;
 				//调用接口，传入酒店ID detailedInfo.hotelID,审核结果 form.choice及说明 dataDescrip，返回null
+				this.dataDescrip = '';
+				this.form.choice = '';//清空"审核说明"输入框与"审核结果"选择框
+				this.dialogAudit = false;
 			},
 		},
 	}
