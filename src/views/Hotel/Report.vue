@@ -19,7 +19,7 @@
                 {{ item.tabName }} 全年营业额共 {{ separateNum(Math.floor(item.turnover)) }} 元
               </h3>
               <el-card shadow="hover" :id="'calendarChart-'+item.tabName" style="width:100%; height:230px;"></el-card>
-              <el-card shadow="hover" :id="'lineChart-'+item.tabName" style="width:100%; height:400px;"></el-card>
+              <el-card shadow="hover" :id="'lineChart-'+item.tabName" style="width:100%; height:550px;"></el-card>
             </el-tab-pane>
           </el-tabs>
         </el-card>
@@ -40,7 +40,8 @@ import {
   GridComponent,
   TitleComponent,
   TooltipComponent,
-  LegendComponent
+  LegendComponent,
+  DataZoomComponent
 } from 'echarts/components';
 import {
   LineChart,
@@ -51,7 +52,7 @@ import {
 } from 'echarts/renderers';
 
 echarts.use(
-  [TitleComponent, TooltipComponent, CalendarComponent, VisualMapComponent,
+  [TitleComponent, TooltipComponent, CalendarComponent, VisualMapComponent, DataZoomComponent,
     HeatmapChart, CanvasRenderer, GridComponent, LineChart, LegendComponent]
 ); 
 
@@ -188,18 +189,36 @@ export default {
           }
         },
         tooltip: { // 鼠标悬停时显示信息
-          trigger: 'axis',
           formatter: function(params){
-            let dateParams = params[0].name.split('/')
-            let relVal = dateParams[0]+"月"+dateParams[1]+"日";
-            relVal += '<div class="circle" ><span style="background:'+params[1].color+'"></span>'+ params[1].seriesName + ' : ' + params[1].value+'%'+"</div>";
-            return relVal;
+            let date = params.data[0];
+            return '<div>入住率</div>' + '<div>' + params.marker + date.getMonth().toString() + '月' + date.getDate().toString() + '日:' + '<b>' + params.data[1] + '%' + '</b></div>'
           }
         },
         visualMap: { // 数值对应颜色
           min: 0,
           max: 1,
           type: 'piecewise',
+          pieces: [{
+            gt: 0,
+            lte: 20,
+            label: '0%~20%',
+          },{
+            gt: 20,
+            lte: 40,
+            label: '20%~40%',
+          },{
+            gt: 40,
+            lte: 60,
+            label: '40%~60%',
+          },{
+            gt: 60,
+            lte: 80,
+            label: '60%~80%',
+          },{
+            gt: 80,
+            lte: 100,
+            label: '80%~100%',
+          }],
           orient: 'horizontal',
           left: 'center',
           top: "22%"
@@ -219,7 +238,7 @@ export default {
           name: '入住率',
           type: 'heatmap',
           coordinateSystem: 'calendar',
-          data: this.chartData.map((item)=>{return [item.date,item.occRate.toFixed(3)]})
+          data: this.chartData.map((item)=>{return [item.date, (item.occRate*100).toFixed(2)]})
         }
       };
       myChart.setOption(option,true); 
@@ -231,7 +250,7 @@ export default {
       let option = {
         grid:{ // 图表位置
           top:"22%",
-          bottom: "10%",
+          bottom: "16%",
           left: "9%",
           right: "9%"
         },
@@ -248,13 +267,10 @@ export default {
         tooltip: { // 鼠标悬停时显示信息
           trigger: 'axis',
           formatter: function(params){
-            let unit = '元';
             let dateParams = params[0].name.split('/')
-            let relVal = dateParams[0]+"月"+dateParams[1]+"日";
-            for (let i = 0; i < params.length; i++) {
-              if(i == 1) unit = '%'
-              relVal += '<div class="circle" ><span style="background:'+params[i].color+'"></span>'+ params[i].seriesName + ' : ' + params[i].value+unit+"</div>";
-            }
+            let relVal = '<div>' + dateParams[0] + "月" + dateParams[1] + "日" + '</div>';
+            relVal += '<div style="text-align:left">' + params[0].marker + params[0].seriesName + ":<b>" + params[0].value + '</b>元</div>';
+            relVal += '<div style="text-align:left">' + params[1].marker + params[1].seriesName + ":<b>" + params[1].value + '</b>%</div>';
             return relVal;
           }
         },
@@ -279,6 +295,15 @@ export default {
           data: ['营业额', '入住率'],
           right: "6%",
           top: "8%"
+        },
+        dataZoom: { // 滑轨
+          type: 'slider',
+          show: true,
+          realTime: true,
+          start: 20,
+          end: 80,
+          xAxisIndex: [0],
+          bottom: "5%"
         },
         series:[ // 折线(两个)
           {
