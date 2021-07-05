@@ -135,7 +135,7 @@
 	import SideNav from "../../components/SideNav"
 	import BackNav from "../../components/BackNav"
 	import {
-		defineComponent,
+		//defineComponent,
 		ref,
 		onMounted
 	} from 'vue'
