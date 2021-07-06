@@ -65,6 +65,7 @@
           </el-descriptions-item>
         </el-descriptions>
         <el-divider/>
+        <!--展示信息描述框-->
         <el-descriptions title="其他信息" :column="2" border>
           <template #extra>
             <el-button v-if="!isModify" @click="modify" type="primary">修改</el-button>
@@ -93,7 +94,6 @@
               </el-form>
             </template>
           </el-descriptions-item>
-          <!--展示信息描述框-->
           <el-descriptions-item v-if ="!isModify">
             <template #label>
               <i class="el-icon-user"></i>
