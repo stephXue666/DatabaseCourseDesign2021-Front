@@ -14,46 +14,60 @@
     酒店收藏夹</h>
     <el-table
     :data="tableData"
-    style="width = 100%"
+    sum-text
+    style="width: 100%;"
     max-height="500"
     highlight-current-row
-    @row-dblclick="handleJumpToHotelPage"
+    @cell-click="handleJumpToHotelPage"
     @current-change="handleCurrentChange"
     >
     <el-table-column
       prop="hotelName"
       label="酒店名"
-      width="150">
+      width="300">
     </el-table-column>
     <el-table-column
       prop="address"
       label="地址"
-      width="250">
+      min-width="300">
     </el-table-column>
     <el-table-column
       prop="star"
       label="星级"
-      width="120"
+      width="200"
       align="center">
+      <template #default="scope">
+        <span style="margin-left: 10px">{{ scope.row.star }}</span>
+        <i class="el-icon-star-on"></i>
+      </template>
     </el-table-column>
     <el-table-column
       prop="score"
       label="评分"
-      width="120"
+      width="200"
       align="center">
+      <template #default="scope">
+      <el-rate v-model="scope.row.score" 
+      disabled
+      show-score
+      text-color="#ff9900"
+      score-template="{ value }分"></el-rate>
+      </template>
     </el-table-column>
     <el-table-column
       prop="lowestPrice"
       label="最低价/天"
-      width="120"
+      width="200"
       align="center">
     </el-table-column>
     <!--未加入“评论数”属性-->
     <!--"取消收藏"操作-->
     <el-table-column
+      prop="operation"
       fixed="right"
       label="操作"
-      align="center">
+      align="center"
+      width="200">
       <template #default="scope">
         <el-button
           @click.prevent="deleteRow(scope.$index,tableData)" 
@@ -72,6 +86,70 @@
 
 <script>
 import TopNav from "../../components/TopNav";
+
+let favoriteList=[{
+          hotelName: '同济招待中心',
+          star: '4',
+          address: '上海市普陀区金沙江路 1512 弄',
+          score: 4.1,
+          lowestPrice:400
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '3',
+          address: '上海市普陀区金沙江路 1513 弄',
+          score: 4.2,
+          lowestPrice:100
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '2',
+          address: '上海市普陀区金沙江路 1514 弄',
+          score: 4.3,
+          lowestPrice:500
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '4',
+          address: '上海市普陀区金沙江路 1516 弄',
+          score: 4.4,
+          lowestPrice:590
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 4.5,
+          lowestPrice:510
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '1',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 4.9,
+          lowestPrice:324
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 3.1,
+          lowestPrice:498
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 4.5,
+          lowestPrice:465
+        },
+        {
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 3.5,
+          lowestPrice:455
+        },]
 
 export default {
 	components: {
@@ -104,85 +182,31 @@ export default {
       this.currentRow = val;
     },
 
-    //双击某行，"跳转"到对应"酒店详情"页面
-    handleJumpToHotelPage(row, event, column){
+    //单击除"操作"以外的单元格，"跳转"到对应"酒店详情"页面
+    handleJumpToHotelPage(row, column, cell, event){
       //"跳转"，用"酒店1"的详情页面测试
+      if(column.property !== "operation"){
       this.$router.push({
         path: '/details',
         query: { id: 1 }
       });
       console.log(row, event, column);
+      }
     },
   },
 
   data() {
       //调用接口-列表显示收藏的酒店：传入（用户ID）返回（酒店简要信息）
       return {
-        tableData: [{
-          hotelName: '同济招待中心',
-          star: '4',
-          address: '上海市普陀区金沙江路 1512 弄',
-          score: 8.1,
-          lowestPrice:400
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '3',
-          address: '上海市普陀区金沙江路 1513 弄',
-          score: 8.2,
-          lowestPrice:100
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '2',
-          address: '上海市普陀区金沙江路 1514 弄',
-          score: 8.3,
-          lowestPrice:500
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '4',
-          address: '上海市普陀区金沙江路 1516 弄',
-          score: 8.4,
-          lowestPrice:590
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 8.5,
-          lowestPrice:510
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '1',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 8.9,
-          lowestPrice:324
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 6.1,
-          lowestPrice:498
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 8.5,
-          lowestPrice:465
-        },
-        {
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 7.5,
-          lowestPrice:455
-        }]
+        tableData: []
       }
     },
-
+  
+  created(){
+    //将变量favoriteList赋值给tableData
+    for(let item of favoriteList){
+      this.tableData.push(item);
+    }
+  },
 }
 </script>
