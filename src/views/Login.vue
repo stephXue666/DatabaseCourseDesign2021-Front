@@ -33,7 +33,6 @@
           <el-radio-group v-model="registerForm.type" >
             <el-radio-button label="住户"></el-radio-button>
             <el-radio-button label="酒店"></el-radio-button>
-            <el-radio-button label="管理员"></el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="账号" prop="newAccount">
@@ -51,6 +50,38 @@
         </el-form-item>
       </el-form>
     </el-card>
+    <!--用户注册的其他信息-->
+    <el-dialog v-model="moreInfo" width="30%" :close-on-click-modal="false"
+               :show-close="false" :modal="false">
+      <el-divider content-position="left"><h2>完善您的信息</h2></el-divider>
+      <el-form :model="infoForm" ref="infoForm" status-icon label-width="70px"
+               style="margin-left: 7%; margin-right: 13%; text-align: left" :rules="rules">
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="infoForm.name"></el-input>
+        </el-form-item>
+        <el-form-item label="性别" prop="gender">
+          <el-radio-group v-model="infoForm.gender">
+            <el-radio label="男"></el-radio>
+            <el-radio label="女"></el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="生日" prop="birthday">
+          <el-date-picker
+              v-model="infoForm.birthday"
+              type="date"
+              placeholder="选择您的生日"
+              format="YYYY 年 MM 月 DD 日"
+              value-format="YYYY-MM-DD">
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="身份证号" prop="IDNumber">
+          <el-input v-model="infoForm.IDNumber"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="success" @click="submitInfo(infoForm)" style="width: 100%">提交</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
   <!--暂时用按钮跳转，后续用表单提交，结果正确时跳转-->
   <div>
@@ -141,8 +172,46 @@ export default {
         callback();
       }
     };
+    //完善姓名验证规则
+    const validateName = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请输入您的姓名'));
+      } else {
+        callback();
+      }
+    };
+    //完善性别验证规则
+    const validateGender = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请选择您的性别'));
+      } else {
+        callback();
+      }
+    };
+    //完善生日验证规则
+    const validateBirthday = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请选择您的生日'));
+      } else {
+        callback();
+      }
+    };
+    //完善身份证号验证规则
+    const validateIDNumber = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请输入您的身份证号'))
+      }
+      else if(value.length !== 15 && value.length !== 18) {
+        callback(new Error('身份证应为15或18位'))
+      }
+      else {
+        callback();
+      }
+    };
+
     return {
       isRegistered: true,   //是否已注册，控制两种窗口的切换
+      moreInfo: false,
       bg: {   //登录注册页面的背景样式
         backgroundImage: "url(" + require("../assets/loginBackground.jpg") + ")",
         backgroundRepeat: "no-repeat",
@@ -161,12 +230,22 @@ export default {
         newPassword: '',
         confirm: '',
       },
+      infoForm: {   //住户注册信息完善
+        name: '',
+        gender: '',
+        birthday: '',
+        IDNumber: '',
+      },
       rules: {    //表单验证规则
         account: [{ validator: validateAccount, trigger: 'blur'}],
         password: [{ validator: validatePassword, trigger: 'blur' }],
         newAccount: [{ validator: validateNewAccount, trigger: 'blur'}],
         newPassword: [{ validator: validateNewPassword, trigger: 'blur' }],
         confirm: [{ validator: validateConfirm, trigger: 'blur' }],
+        name: [{ validator: validateName, trigger: 'blur' }],
+        gender: [{ validator: validateGender, trigger: 'blur' }],
+        birthday: [{ validator: validateBirthday, trigger: 'blur' }],
+        IDNumber: [{ validator: validateIDNumber, trigger: 'blur' }],
       }
     }
   },
@@ -176,6 +255,7 @@ export default {
       let url = 'https://106.15.179.2:8080/staff/all'
       this.axios.get(url).then((response) => {
         console.log(response)
+        this.infoForm = response.data
       })
     },
     //用户登录分流
@@ -210,10 +290,7 @@ export default {
         ElMessage.error('账号或密码错误！')
         return
       }
-      ElMessage.success({
-        message: '登录成功！',
-        type: 'success'
-      });
+      ElMessage.success('登录成功！')
       window.sessionStorage.setItem('uid', uid)
       this.$router.push('/home')
     },
@@ -267,13 +344,10 @@ export default {
               break
             case '酒店':
               this.hotelRegister(form.newAccount, form.newPassword)
-              break
-            case '管理员':
-              this.adminRegister(form.newAccount, form.newPassword)
+              this.cancelRegister()
               break
           }
           ElMessage.success('注册成功！')
-          this.cancelRegister()
         }
         else {
           return false
@@ -285,15 +359,44 @@ export default {
       console.log(account, password)
       //调用接口- 传入账号密码，无返回
 
+      this.moreInfo = true
+    },
+    //住户完善信息
+    submitInfo(form) {
+      this.$refs['infoForm'].validate((valid) => {
+        if (valid) {
+          console.log(this.registerForm.newAccount, this.registerForm.newPassword)
+          //调用接口- 传入账号密码，返回用户ID
+          let uid = '1'
+
+          console.log(form)
+          let userInfo = {
+            userName: this.registerForm.newAccount,
+            password: this.registerForm.newPassword,
+            name: form.name,
+            gender: form.gender,
+            birthday: form.birthday,
+            IDNumber: form.IDNumber,
+            nickName: '',
+            phone: '',
+          }
+          console.log(userInfo)
+          //调用接口- 传入用户ID、所有信息，无返回
+
+          ElMessage.success('填写完成，已为您自动登录，3S后自动返回首页！')
+          setTimeout(() => {
+            this.moreInfo = false
+            this.cancelRegister()
+            window.sessionStorage.setItem('uid', uid)
+            this.$router.push('/home')
+          }, 3000);
+        } else {
+          return false
+        }
+      })
     },
     //酒店注册
     hotelRegister(account, password) {
-      console.log(account, password)
-      //调用接口- 传入账号密码，无返回
-
-    },
-    //管理员注册
-    adminRegister(account, password) {
       console.log(account, password)
       //调用接口- 传入账号密码，无返回
 

@@ -1,14 +1,18 @@
 <template>
   <!--正常酒店的侧栏-->
-  <el-menu v-if="character==='hotel'" :default-active="$route.path" background-color="#545c64"
-           text-color="#fff" active-text-color="#ffd04b" style="border-right: 0" router>
+  <el-menu v-if="character==='hotel'" :default-active="$route.path" background-color="#545c64" ref="menu"
+           text-color="#fff" active-text-color="#ffd04b" style="border-right: 0" :unique-opened="true" router>
     <el-menu-item index="/hotel/home">
       <i class="el-icon-menu"></i>
       <template #title>酒店主页</template>
     </el-menu-item>
     <el-menu-item index="/hotel/info">
-      <i class="el-icon-menu"></i>
-      <template #title>信息管理</template>
+      <i class="el-icon-document"></i>
+      <template #title>酒店管理</template>
+    </el-menu-item>
+    <el-menu-item index="/hotel/room">
+      <i class="el-icon-document"></i>
+      <template #title>房间管理</template>
     </el-menu-item>
     <el-menu-item index="/hotel/order">
       <i class="el-icon-document"></i>
