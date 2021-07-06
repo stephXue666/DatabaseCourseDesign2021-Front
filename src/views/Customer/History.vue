@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-header style="padding: 0">
-      <top-nav/>
+      <TopNav/>
     </el-header>
     <el-main>
       <!--这里写代码-->
@@ -15,7 +15,7 @@
     style="width = 100%"
     max-height="500"
     highlight-current-row
-    @row-dblclick="handleJumpToHotelPage"
+    @cell-click="handleJumpToHotelPage"
     @current-change="handleCurrentChange"
     >
     <el-table-column
@@ -27,36 +27,49 @@
     <el-table-column
       prop="hotelName"
       label="酒店名"
-      width="150">
+      width="200">
     </el-table-column>
     <el-table-column
       prop="address"
       label="地址"
-      width="250">
+      min-width="200">
     </el-table-column>
     <el-table-column
       prop="star"
       label="星级"
-      width="120"
+      width="200"
       align="center">
+      <template #default="scope">
+        <span style="margin-left: 10px">{{ scope.row.star }}</span>
+        <i class="el-icon-star-on"></i>
+      </template>
     </el-table-column>
     <el-table-column
       prop="score"
       label="评分"
-      width="120"
+      width="200"
       align="center">
+      <template #default="scope">
+      <el-rate v-model="scope.row.score" 
+      disabled
+      show-score
+      text-color="#ff9900"
+      score-template="{ value }分"></el-rate>
+      </template>
     </el-table-column>
     <el-table-column
       prop="lowestPrice"
       label="最低价/天"
-      width="120"
+      width="200"
       align="center">
     </el-table-column>
     <!--未加入“评论数”属性-->
     <!--"删除"操作-->
     <el-table-column
+      prop="operation"
       fixed="right"
       label="操作"
+      width="200"
       align="center">
       <template #default="scope">
         <el-button
@@ -76,6 +89,79 @@
 
 <script>
 import TopNav from "../../components/TopNav";
+
+let historyList=[{
+          time: '2016-05-03 15:20:19',
+          hotelName: '同济招待中心',
+          star: '4',
+          address: '上海市普陀区金沙江路 1512 弄',
+          score: 4.1,
+          lowestPrice:400
+        },
+        {
+          time: '2016-05-03 15:20:20',
+          hotelName: '同济招待中心',
+          star: '3',
+          address: '上海市普陀区金沙江路 1513 弄',
+          score: 4.2,
+          lowestPrice:100
+        },
+        {
+          time: '2016-05-03 15:20:21',
+          hotelName: '同济招待中心',
+          star: '2',
+          address: '上海市普陀区金沙江路 1514 弄',
+          score: 4.3,
+          lowestPrice:500
+        },
+        {
+          time: '2016-05-03 15:20:22',
+          hotelName: '同济招待中心',
+          star: '4',
+          address: '上海市普陀区金沙江路 1516 弄',
+          score: 4.4,
+          lowestPrice:590
+        },
+        {
+          time: '2016-05-03 15:20:23',
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 4.5,
+          lowestPrice:510
+        },
+        {
+          time: '2016-05-03 15:20:29',
+          hotelName: '同济招待中心',
+          star: '1',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 4.9,
+          lowestPrice:324
+        },
+        {
+          time: '2016-05-03 15:29:23',
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 3.1,
+          lowestPrice:498
+        },
+        {
+          time: '2016-05-03 15:30:23',
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 4.5,
+          lowestPrice:465
+        },
+        {
+          time: '2016-05-03 15:40:23',
+          hotelName: '同济招待中心',
+          star: '5',
+          address: '上海市普陀区金沙江路 1517 弄',
+          score: 3.5,
+          lowestPrice:455}]
+
 export default {
 	components: {
     TopNav,
@@ -106,93 +192,31 @@ export default {
         this.currentRow = val;
       },
 
-      //双击某行，"跳转"到对应"酒店详情"页面
-      handleJumpToHotelPage(row, event, column){
+      //单击除"操作"以外列的单元格，"跳转"到对应"酒店详情"页面
+      handleJumpToHotelPage(row, column, cell, event){
         //"跳转"，用"酒店1"的详情页面测试
-        this.$router.push({
-        path: '/details',
-        query: { id: 1 }
+        if(column.property !== "operation"){
+          this.$router.push({
+          path: '/details',
+          query: { id: 1 }
         });
-        console.log(row, event, column);
+          console.log(row, event, column);
+        }
       },
    },
 
     data() {
-      //调用接口-列表显示酒店历史足迹：传入（用户ID）返回（酒店简要信息+时间）
       return {
-        tableData: [{
-          time: '2016-05-03 15:20:19',
-          hotelName: '同济招待中心',
-          star: '4',
-          address: '上海市普陀区金沙江路 1512 弄',
-          score: 8.1,
-          lowestPrice:400
-        },
-        {
-          time: '2016-05-03 15:20:20',
-          hotelName: '同济招待中心',
-          star: '3',
-          address: '上海市普陀区金沙江路 1513 弄',
-          score: 8.2,
-          lowestPrice:100
-        },
-        {
-          time: '2016-05-03 15:20:21',
-          hotelName: '同济招待中心',
-          star: '2',
-          address: '上海市普陀区金沙江路 1514 弄',
-          score: 8.3,
-          lowestPrice:500
-        },
-        {
-          time: '2016-05-03 15:20:22',
-          hotelName: '同济招待中心',
-          star: '4',
-          address: '上海市普陀区金沙江路 1516 弄',
-          score: 8.4,
-          lowestPrice:590
-        },
-        {
-          time: '2016-05-03 15:20:23',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 8.5,
-          lowestPrice:510
-        },
-        {
-          time: '2016-05-03 15:20:29',
-          hotelName: '同济招待中心',
-          star: '1',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 8.9,
-          lowestPrice:324
-        },
-        {
-          time: '2016-05-03 15:29:23',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 6.1,
-          lowestPrice:498
-        },
-        {
-          time: '2016-05-03 15:30:23',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 8.5,
-          lowestPrice:465
-        },
-        {
-          time: '2016-05-03 15:40:23',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 7.5,
-          lowestPrice:455
-        }]
+        tableData: []
       }
+    },
+
+    created(){
+      //调用接口-列表显示酒店历史足迹：传入（用户ID）返回（酒店简要信息+时间）
+      //将变量historyList赋值给tableData
+      for(let item of historyList){
+        this.tableData.push(item);
+    }
     },
  }
 </script>
