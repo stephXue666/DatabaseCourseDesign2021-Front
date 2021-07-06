@@ -33,10 +33,10 @@
 					</el-table>
 					<!--点击"查看"按钮，打开酒店详情页面-->
 					<el-dialog title="酒店详情" v-model="dialogAudit" width="30%">
-						<el-descriptions class="margin-top" :column="2" :size="size" border>
+						<el-descriptions title="基本信息" class="margin-top" :column="2" :size="size" border>
 							<el-descriptions-item>
 								<template #label>
-									<i class="el-icon-star-off"></i>
+									<i class="el-icon-user-solid"></i>
 									酒店ID
 								</template>
 								{{detailedInfo.hotelID}}
@@ -52,21 +52,21 @@
 						<el-descriptions class="margin-top" :column="3" :size="size" border>
 							<el-descriptions-item>
 								<template #label>
-									<i class="el-icon-location"></i>
+									<i class="el-icon-map-location"></i>
 									省
 								</template>
 								{{detailedInfo.hotelProvince}}
 							</el-descriptions-item>
 							<el-descriptions-item>
 								<template #label>
-									<i class="el-icon-location-outline"></i>
+									<i class="el-icon-location-information"></i>
 									市
 								</template>
 								{{ detailedInfo.hotelCity }}
 							</el-descriptions-item>
 							<el-descriptions-item>
 								<template #label>
-									<i class="el-icon-location-information"></i>
+									<i class="el-icon-location-outline"></i>
 									区
 								</template>
 								{{ detailedInfo.hotelRegion }}
@@ -75,11 +75,13 @@
 						<el-descriptions class="margin-top" :column="1" :size="size" border>
 							<el-descriptions-item>
 								<template #label>
-									<i class="el-icon-map-location"></i>
+									<i class="el-icon-place"></i>
 									详细地址
 								</template>
 								{{ detailedInfo.hotelAddress }}
 							</el-descriptions-item>
+						</el-descriptions>
+						<el-descriptions title="审核信息" class="margin-top" :column="1" :size="size" border>
 							<el-descriptions-item>
 								<template #label>
 									<i class="el-icon-postcard"></i>
@@ -135,7 +137,10 @@
 	import SideNav from "../../components/SideNav"
 	import BackNav from "../../components/BackNav"
 	import {
-		//defineComponent,
+		ElMessage
+	} from 'element-plus'
+	import {
+		//define Component,
 		ref,
 		onMounted
 	} from 'vue'
@@ -222,6 +227,7 @@
 			for (let hotel of hotelData) {
 				this.tableData.push(hotel);
 			}
+			this.form.choice = '';
 		},
 		data() {
 			return {
@@ -308,23 +314,29 @@
 			//当选择了"审核结果"的某个选项时，调用此函数
 			auditSelect() {
 				console.log('选择了', this.form.choice);
-				if (this.form.choice == 'true') { 				//如果选择了"审核通过"，则屏蔽"审核说明"输入框
+				if (this.form.choice == 'true') { //如果选择了"审核通过"，则屏蔽"审核说明"输入框
 					console.log('选择', this.form.choice);
 					this.disabledDescrip = true;
-					this.dataDescrip = "通过无需说明";
-				} else if (this.dataDescrip == "通过无需说明") { //如果选择了"审核驳回"且输入框内容是"通过无需说明"，则解除屏蔽"审核说明"输入框，并清空
+					this.dataDescrip = '通过无需说明';
+				} else if (this.dataDescrip == '通过无需说明') { //如果选择了"审核驳回"且输入框内容是"通过无需说明"，则解除屏蔽"审核说明"输入框，并清空
 					console.log('选择', this.form.choice);
-					this.disabledDescrip = false					
-					this.dataDescrip = "";
+					this.disabledDescrip = false
+					this.dataDescrip = '';
 				}
 			},
 			submitClick() {
 				console.log(this.dataDescrip, this.form.choice);
 				console.log(this.detailedInfo.hotelID);
-				//调用接口，传入酒店ID detailedInfo.hotelID,审核结果 form.choice及说明 dataDescrip，返回null
-				this.dataDescrip = '';
-				this.form.choice = '';//清空"审核说明"输入框与"审核结果"选择框
-				this.dialogAudit = false;
+				//调用接口-，传入酒店ID detailedInfo.hotelID,审核结果 form.choice及说明 dataDescrip，返回null
+				if (this.form.choice == '' || (this.form.choice == 'false' && this.dataDescrip == ''))
+					this.$message.error('未完成酒店审核填写，提交失败');
+				else {
+					ElMessage('审核提交成功');
+					this.dataDescrip = '';
+					this.form.choice = ''; //清空"审核说明"输入框与"审核结果"选择框
+					this.disabledDescrip = false; //解除屏蔽"审核说明"输入框
+					this.dialogAudit = false;
+				}
 			},
 		},
 	}
