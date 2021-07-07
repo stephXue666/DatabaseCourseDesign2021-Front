@@ -52,7 +52,7 @@
 							<template #default="scope">
 								<el-button @click="handleClick(scope.row)" type="text" size="small">查看
 								</el-button>
-								<el-button @click="deleteClick(scope.row)" type="text" size="small">删除
+								<el-button @click="deleteClick(index)" type="text" size="small">删除
 								</el-button>
 							</template>
 						</el-table-column>
@@ -420,7 +420,7 @@
 			},
 
 			//点击删除按钮
-			deleteClick(index, row) {
+			deleteClick(index) {
 				this.$confirm('此操作将永久删除该酒店的所有信息, 是否继续?', '警告', { //确认删除
 					confirmButtonText: '确定',
 					cancelButtonText: '取消',
@@ -471,7 +471,7 @@
 				console.log(file);
 				let isPic = false;
 				for (let pic of ['image/jpg', 'image/jpeg', 'image/png'])
-					isPic = file.type === 'image/jpeg';
+					isPic = isPic || (file.type === pic);
 				const isLt10M = file.size / 1024 / 1024 < 10;
 				if (!isPic) {
 					this.$message.error('上传的图片只能是 JPG/JEPG/PNG 格式!');
@@ -492,7 +492,7 @@
 				console.log(file);
 				let isPic = false;
 				for (let pic of ['image/jpg', 'image/jpeg', 'image/png'])
-					isPic = file.type === 'image/jpeg';
+					isPic = isPic || (file.type === pic);
 				const isLt10M = file.size / 1024 / 1024 < 10;
 				if (!isPic) {
 					this.$message.error('上传的图片只能是 JPG/JEPG/PNG 格式!');
@@ -507,7 +507,7 @@
 					});
 				}
 			},
-			
+
 			//点击返回，关闭对话框
 			backClick() {
 				this.dialogDetails = false;
