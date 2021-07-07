@@ -17,7 +17,6 @@ import HotelRoom from "../views/Hotel/Room"
 import HotelOrder from "../views/Hotel/Order"
 import HotelReport from "../views/Hotel/Report"
 
-import AdminHome from "../views/Administrator/Home"
 import AdminEvaluate from "../views/Administrator/Evaluate"
 import AdminManage from "../views/Administrator/Manage"
 import AdminReply from "../views/Administrator/Reply"
@@ -43,7 +42,6 @@ const routes = [
 	{ path: '/hotel/order', 	component: HotelOrder },
 	{ path: '/hotel/report', 	component: HotelReport },
 
-	{ path: '/admin/home', 		component: AdminHome },
 	{ path: '/admin/evaluate', 		component: AdminEvaluate },
 	{ path: '/admin/manage', 		component: AdminManage },
 	{ path: '/admin/reply', 		component: AdminReply },

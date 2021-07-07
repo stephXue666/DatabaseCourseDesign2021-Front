@@ -28,16 +28,12 @@
            text-color="#fff" active-text-color="#ffd04b" style="border-right: 0" router>
     <el-menu-item index="/hotel/wait">
       <i class="el-icon-menu"></i>
-      <template #title>审核酒店</template>
+      <template #title>酒店信息注册</template>
     </el-menu-item>
   </el-menu>
   <!--管理员的侧栏-->
   <el-menu v-if="character==='admin'" :default-active="$route.path" background-color="#545c64"
            text-color="#fff" active-text-color="#ffd04b" style="border-right: 0" router>
-    <el-menu-item index="/admin/home">
-      <i class="el-icon-menu"></i>
-      <template #title>管理员主页</template>
-    </el-menu-item>
     <el-menu-item index="/admin/evaluate">
       <i class="el-icon-menu"></i>
       <template #title>审核酒店</template>
