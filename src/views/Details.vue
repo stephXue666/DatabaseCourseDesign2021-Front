@@ -1,221 +1,223 @@
 <template>
-  <el-container>
-    <el-header style="padding: 0">
-      <top-nav/>
-    </el-header>
-    <el-row><el-col :span="20" :offset="2">
-      <el-main>
-        <!--上方显示省市区的面包屑-->
-        <el-divider content-position="left">
-          <el-breadcrumb separator="/" style="margin-top: 10px; margin-bottom: 10px">
-            <el-breadcrumb-item :to="{ path: '/home' }">酒店首页</el-breadcrumb-item>
-            <el-breadcrumb-item>{{ hotelInfo.province }}酒店</el-breadcrumb-item>
-            <el-breadcrumb-item :to="{ path: '/result', query: { province:hotelInfo.province, city: hotelInfo.city }}">
-              {{ hotelInfo.city }}
-            </el-breadcrumb-item>
-            <el-breadcrumb-item>{{ hotelInfo.region }}</el-breadcrumb-item>
-          </el-breadcrumb>
-        </el-divider>
-        <!--标题、星级、地址、收藏按钮-->
-        <el-row>
-          <el-col :span="12">
-            <el-row>
-              <el-col :span="8" style="font-size: 24px; font-weight: 900; text-align: left">
-                {{ hotelInfo.name }}
-              </el-col>
-              <el-col :span="6" style="text-align: left">
-                <el-rate v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
-              </el-col>
-            </el-row>
-            <p style="font-size: 16px; font-weight: 500; text-align: left">{{ hotelInfo.location }}</p>
-          </el-col>
-          <el-col :span="4" :offset="8">
-            <el-button @click="addFavorite" icon="el-icon-star-on" round size="small">收藏</el-button>
-          </el-col>
-        </el-row>
-        <!--酒店图片、简要介绍-->
-        <el-row>
-          <el-col :span="12">
-            <el-image :src="hotelInfo.url" style="height: 270px"></el-image>
-          </el-col>
-          <el-col :span="11" style="margin-left: 16px">
-            <el-card shadow="hover" style="border-radius: 8px; text-align: left" class="box-card">
-              <span style="font-weight: 900 ;font-size: 30px; color: #67C23A">
-                {{ hotelInfo.score }}
-              </span>
-              <span style="font-weight: 600 ;font-size: 20px; color: #67C23A">分</span>
-              <span style="font-size: 16px; font-weight: 500; margin-left:10px; text-align: left; color: #9f9f9f">
-                共有{{eAll.length}}条点评
-              </span>
-              <p style="font-size: 15px; font-weight: 500; text-align: left">{{hotelInfo.details}}</p>
-              <h3>这里是放地图展示的位置</h3>
-            </el-card>
-          </el-col>
-        </el-row>
-        <br><el-divider content-position="left">更多信息</el-divider>
-        <el-tabs v-model="activePart" type="card" style="border-radius: 8px" @tab-click="refresh">
-          <!--房型预定部分-->
-          <el-tab-pane label="房间预定" name="room"
-                       style="background-color: #ffdeb7; padding: 10px; border-radius: 6px">
-            <el-card style="text-align: left; margin-bottom: 6px; padding: 0">
-              <!--预定时间选择+合计天数,变更时自动刷新-->
-              <el-date-picker range-separator="=>" start-placeholder="入住" end-placeholder="离店"
-                              :disabledDate="getDisable" value-format="YYYY-MM-DD" v-model="dateRange"
-                              type="daterange" @blur="getTimeSlot" :clearable="false"></el-date-picker>
-              <span style="margin-left: 20px; margin-right: 25px ; font-weight: 700; color: darkgray">共 {{orderForm.days}} 晚</span>
-              <el-divider direction="vertical"></el-divider>
-              <!--预定房间数，变更时自动按剩余数修改是否可以预定-->
-              <span style="margin-left: 25px; font-weight: 700; color: darkgray">预定房间数量</span>
-              <el-input-number v-model="orderForm.number" style="margin-left: 20px; width: 12%"
-                               :min="1" :max="10" ></el-input-number>
-            </el-card>
-            <el-table :data="roomInfo" style="width: 100%" v-loading="roomLoading">
-              <!--房间主图和房型-->
-              <el-table-column label="房型" width="420px">
-                <template #default="scope">
-                  <el-space>
-                    <el-image :src="scope.row.pic" style="width: 240px; margin-right:6px"></el-image>
-                    <span style="font-weight: bold; font-size: 16px">{{ scope.row.type }}<br><br><br><br><br></span>
-                  </el-space>
-                </template>
-              </el-table-column>
-              <!--房间配置-->
-              <el-table-column label="房间配置">
-                <template #default="scope">
-                  <span class="room-details">房间面积：{{ scope.row.area }}㎡</span><br>
-                  <span class="room-details">{{ scope.row.window }}窗户</span><br>
-                  <span class="room-details">{{ scope.row.wifi }}无线网络</span><br>
-                  <span class="room-details">{{ scope.row.smoke }}吸烟</span><br><br>
-                </template>
-              </el-table-column>
-              <!--房间价格-->
-              <el-table-column label="价格">
-                <template #default="scope">
-                  <span style="font-weight: 700; font-size: 22px; color: dodgerblue">
-                    ￥{{ scope.row.price }}<br><br><br><br>
-                  </span>
-                </template>
-              </el-table-column>
-              <!--预定操作-->
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button round icon="el-icon-s-order" type="success" :disabled="scope.row.remain < orderForm.number"
-                             @click="addOrder(scope.row)">
-                    预定房间
-                  </el-button>
-                  <br><br><br><br>
-                </template>
-              </el-table-column>
-            </el-table>
-            <!--预定房间窗口-->
-            <el-dialog title="预定房间" v-model="newOrder" width="40%" @closed="cancelOrder">
-              <!--预定时间确认-->
-              <el-descriptions title="信息确认" :column="3" border
-                               style="margin-left: 2%; margin-right: 2%">
-                <el-descriptions-item>
-                  <template #label>入住日期</template>
-                  {{ dateRange[0] }}
-                </el-descriptions-item>
-                <el-descriptions-item>
-                  <template #label>离店日期</template>
-                  {{ dateRange[1] }}
-                </el-descriptions-item>
-                <el-descriptions-item>
-                  <template #label>预定天数</template>
-                  {{ orderForm.days }}
-                </el-descriptions-item>
-              </el-descriptions>
-              <!--订单信息确认-->
-              <el-descriptions :column="2" border
-                               style="margin-left: 2%; margin-right: 2%; margin-bottom: 20px">
-                <el-descriptions-item>
-                  <template #label>房间类型</template>
-                  {{ orderForm.type }}
-                </el-descriptions-item>
-                <el-descriptions-item>
-                  <template #label>房间单价</template>
-                  ￥ {{ orderForm.price }}
-                </el-descriptions-item>
-                <el-descriptions-item>
-                  <template #label>订房数量</template>
-                  {{ orderForm.number }} 间
-                </el-descriptions-item>
-                <el-descriptions-item>
-                  <template #label>订单金额</template>
-                  ￥ {{ orderForm.volume }}
-                </el-descriptions-item>
-              </el-descriptions>
-              <!--入住信息确认-->
-              <el-form inline :model="orderForm" label-width="100px" style="margin-left: 0; margin-right: 2%">
-                <el-form-item label="入住人姓名">
-                  <el-input v-model="orderForm.name" style="width: 110px"></el-input>
-                </el-form-item>
-                <el-form-item label="入住人电话">
-                  <el-input type="tel" v-model="orderForm.phone" style="width: 160px; margin-right:10px"></el-input>
-                </el-form-item>
-                <el-form-item>
-                  <el-tooltip effect="light" content="使用当前用户信息" placement="right">
-                    <el-button type="primary" @click="setInfo" icon="el-icon-user" circle></el-button>
-                  </el-tooltip>
-                </el-form-item>
-                <el-button type="success" @click="submitOrder" style="width: 48%">确认</el-button>
-                <el-button type="danger" @click="newOrder = false" style="width: 48%">取消</el-button>
-              </el-form>
-            </el-dialog>
-          </el-tab-pane>
-          <!--用户评价部分-->
-          <el-tab-pane label="用户评价" name="estimation"
-                       style="background-color: #ffdeb7; padding: 10px; border-radius: 6px">
-            <el-card style="text-align: left; margin-bottom: 6px" body-style="padding: 10px">
-              <span style="font-weight: 800 ;font-size: 28px; color: #67C23A; margin-right: 3px; margin-left: 20px">
-                {{ hotelInfo.score }}
-              </span>
-              <span style="font-weight: 600 ;font-size: 18px; color: #67C23A; margin-right: 20px">分</span>
-              <el-tag type="success" effect="dark">
-                好评率 {{ eHigh.length/eAll.length*100 }}%
-              </el-tag><br>
-              <!--筛选评论类型-->
-              <el-radio-group style="margin-left: 20px; margin-top: 10px; margin-bottom: 5px" v-model="estimationType" @change="filterEstimation">
-                <el-radio label="全部" style="width: 64px">全部（{{ eAll.length }}）</el-radio>
-                <el-radio label="好评" style="width: 64px">好评（{{ eHigh.length }}）</el-radio>
-                <el-radio label="中评" style="width: 64px">差评（{{ eMiddle.length }}）</el-radio>
-                <el-radio label="差评" style="width: 64px">差评（{{ eLow.length }}）</el-radio>
-              </el-radio-group>
-              <el-button v-if="eOrder" @click="sortEstimation" icon="el-icon-caret-bottom" style="margin-left: 400px" size="small" type="primary">按评论最新</el-button>
-              <el-button v-else @click="sortEstimation" icon="el-icon-caret-top" style="margin-left: 400px" size="small" type="primary">按评论最早</el-button>
-            </el-card>
-            <!--评论内容-->
-            <el-table :show-header="false" :data="estimation" style="width: 100%; min-height: 530px">
-              <el-table-column width="120">
-                <template #default="scope">
-                  <i class="el-icon-user" style="color:#409EFF;"></i>
-                  <span style="margin-left: 10px; font-weight: 700; color: #409EFF">{{ scope.row.nickName }}</span><br><br><br>
-                </template>
-              </el-table-column>
-              <el-table-column width="800">
-                <template #default="scope">
-                  <el-rate v-model="scope.row.star" :icon-classes="iconClasses" style="margin-left: 40px"
-                           disabled-void-color='white' :colors="['#99A9BF', '#F7BA2A', '#FF9900']" disabled>
-                  </el-rate>
-                  <span style="margin-left: 10px; display:block;text-indent:2em">{{ scope.row.content }}</span>
-                  <i class="el-icon-time" style="color: darkgray"></i>
-                  <span style="margin-left: 10px; color: darkgray">发布于 {{ scope.row.time }}</span>
-                </template>
-              </el-table-column>
-            </el-table>
-          </el-tab-pane>
-        </el-tabs>
-      </el-main>
-    </el-col>
-    <el-col :span="2">
-      <!--快捷导航的固钉-->
-      <el-affix :offset="74">
-        <el-button type="primary" @click="goUp(0)" size="mini" style="margin-bottom: 4px">酒店详情</el-button><br>
-        <el-button type="primary" @click="goUp(1)" size="mini">更多信息</el-button>
-      </el-affix>
-    </el-col></el-row>
-    <el-footer>Copyright ©2021 住哪儿-酒店预定平台</el-footer>
-  </el-container>
+  <el-scrollbar>
+    <el-container>
+      <el-header style="padding: 0">
+        <top-nav/>
+      </el-header>
+      <el-row><el-col :span="20" :offset="2">
+        <el-main>
+          <!--上方显示省市区的面包屑-->
+          <el-divider content-position="left">
+            <el-breadcrumb separator="/" style="margin-top: 10px; margin-bottom: 10px">
+              <el-breadcrumb-item :to="{ path: '/home' }">酒店首页</el-breadcrumb-item>
+              <el-breadcrumb-item>{{ hotelInfo.province }}酒店</el-breadcrumb-item>
+              <el-breadcrumb-item :to="{ path: '/result', query: { province:hotelInfo.province, city: hotelInfo.city }}">
+                {{ hotelInfo.city }}
+              </el-breadcrumb-item>
+              <el-breadcrumb-item>{{ hotelInfo.region }}</el-breadcrumb-item>
+            </el-breadcrumb>
+          </el-divider>
+          <!--标题、星级、地址、收藏按钮-->
+          <el-row>
+            <el-col :span="12">
+              <el-row>
+                <el-col :span="8" style="font-size: 24px; font-weight: 900; text-align: left">
+                  {{ hotelInfo.name }}
+                </el-col>
+                <el-col :span="6" style="text-align: left">
+                  <el-rate v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
+                </el-col>
+              </el-row>
+              <p style="font-size: 16px; font-weight: 500; text-align: left">{{ hotelInfo.location }}</p>
+            </el-col>
+            <el-col :span="4" :offset="8">
+              <el-button @click="addFavorite" icon="el-icon-star-on" round size="small">收藏</el-button>
+            </el-col>
+          </el-row>
+          <!--酒店图片、简要介绍-->
+          <el-row>
+            <el-col :span="12">
+              <el-image :src="hotelInfo.url" style="height: 270px"></el-image>
+            </el-col>
+            <el-col :span="11" style="margin-left: 16px">
+              <el-card shadow="hover" style="border-radius: 8px; text-align: left" class="box-card">
+                <span style="font-weight: 900 ;font-size: 30px; color: #67C23A">
+                  {{ hotelInfo.score }}
+                </span>
+                <span style="font-weight: 600 ;font-size: 20px; color: #67C23A">分</span>
+                <span style="font-size: 16px; font-weight: 500; margin-left:10px; text-align: left; color: #9f9f9f">
+                  共有{{eAll.length}}条点评
+                </span>
+                <p style="font-size: 15px; font-weight: 500; text-align: left">{{hotelInfo.details}}</p>
+                <h3>这里是放地图展示的位置</h3>
+              </el-card>
+            </el-col>
+          </el-row>
+          <br><el-divider content-position="left">更多信息</el-divider>
+          <el-tabs v-model="activePart" type="card" style="border-radius: 8px" @tab-click="refresh">
+            <!--房型预定部分-->
+            <el-tab-pane label="房间预定" name="room"
+                         style="background-color: #ffdeb7; padding: 10px; border-radius: 6px">
+              <el-card style="text-align: left; margin-bottom: 6px; padding: 0">
+                <!--预定时间选择+合计天数,变更时自动刷新-->
+                <el-date-picker range-separator="=>" start-placeholder="入住" end-placeholder="离店"
+                                :disabledDate="getDisable" value-format="YYYY-MM-DD" v-model="dateRange"
+                                type="daterange" @blur="getTimeSlot" :clearable="false"></el-date-picker>
+                <span style="margin-left: 20px; margin-right: 25px ; font-weight: 700; color: darkgray">共 {{orderForm.days}} 晚</span>
+                <el-divider direction="vertical"></el-divider>
+                <!--预定房间数，变更时自动按剩余数修改是否可以预定-->
+                <span style="margin-left: 25px; font-weight: 700; color: darkgray">预定房间数量</span>
+                <el-input-number v-model="orderForm.number" style="margin-left: 20px; width: 12%"
+                                 :min="1" :max="10" ></el-input-number>
+              </el-card>
+              <el-table :data="roomInfo" style="width: 100%" v-loading="roomLoading">
+                <!--房间主图和房型-->
+                <el-table-column label="房型" width="420px">
+                  <template #default="scope">
+                    <el-space>
+                      <el-image :src="scope.row.pic" style="width: 240px; margin-right:6px"></el-image>
+                      <span style="font-weight: bold; font-size: 16px">{{ scope.row.type }}<br><br><br><br><br></span>
+                    </el-space>
+                  </template>
+                </el-table-column>
+                <!--房间配置-->
+                <el-table-column label="房间配置">
+                  <template #default="scope">
+                    <span class="room-details">房间面积：{{ scope.row.area }}㎡</span><br>
+                    <span class="room-details">{{ scope.row.window }}窗户</span><br>
+                    <span class="room-details">{{ scope.row.wifi }}无线网络</span><br>
+                    <span class="room-details">{{ scope.row.smoke }}吸烟</span><br><br>
+                  </template>
+                </el-table-column>
+                <!--房间价格-->
+                <el-table-column label="价格">
+                  <template #default="scope">
+                    <span style="font-weight: 700; font-size: 22px; color: dodgerblue">
+                      ￥{{ scope.row.price }}<br><br><br><br>
+                    </span>
+                  </template>
+                </el-table-column>
+                <!--预定操作-->
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button round icon="el-icon-s-order" type="success" :disabled="scope.row.remain < orderForm.number"
+                               @click="addOrder(scope.row)">
+                      预定房间
+                    </el-button>
+                    <br><br><br><br>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <!--预定房间窗口-->
+              <el-dialog title="预定房间" v-model="newOrder" width="40%" @closed="cancelOrder">
+                <!--预定时间确认-->
+                <el-descriptions title="信息确认" :column="3" border
+                                 style="margin-left: 2%; margin-right: 2%">
+                  <el-descriptions-item>
+                    <template #label>入住日期</template>
+                    {{ dateRange[0] }}
+                  </el-descriptions-item>
+                  <el-descriptions-item>
+                    <template #label>离店日期</template>
+                    {{ dateRange[1] }}
+                  </el-descriptions-item>
+                  <el-descriptions-item>
+                    <template #label>预定天数</template>
+                    {{ orderForm.days }}
+                  </el-descriptions-item>
+                </el-descriptions>
+                <!--订单信息确认-->
+                <el-descriptions :column="2" border
+                                 style="margin-left: 2%; margin-right: 2%; margin-bottom: 20px">
+                  <el-descriptions-item>
+                    <template #label>房间类型</template>
+                    {{ orderForm.type }}
+                  </el-descriptions-item>
+                  <el-descriptions-item>
+                    <template #label>房间单价</template>
+                    ￥ {{ orderForm.price }}
+                  </el-descriptions-item>
+                  <el-descriptions-item>
+                    <template #label>订房数量</template>
+                    {{ orderForm.number }} 间
+                  </el-descriptions-item>
+                  <el-descriptions-item>
+                    <template #label>订单金额</template>
+                    ￥ {{ orderForm.volume }}
+                  </el-descriptions-item>
+                </el-descriptions>
+                <!--入住信息确认-->
+                <el-form inline :model="orderForm" label-width="100px" style="margin-left: 0; margin-right: 2%">
+                  <el-form-item label="入住人姓名">
+                    <el-input v-model="orderForm.name" style="width: 110px"></el-input>
+                  </el-form-item>
+                  <el-form-item label="入住人电话">
+                    <el-input type="tel" v-model="orderForm.phone" style="width: 160px; margin-right:10px"></el-input>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-tooltip effect="light" content="使用当前用户信息" placement="right">
+                      <el-button type="primary" @click="setInfo" icon="el-icon-user" circle></el-button>
+                    </el-tooltip>
+                  </el-form-item>
+                  <el-button type="success" @click="submitOrder" style="width: 48%">确认</el-button>
+                  <el-button type="danger" @click="newOrder = false" style="width: 48%">取消</el-button>
+                </el-form>
+              </el-dialog>
+            </el-tab-pane>
+            <!--用户评价部分-->
+            <el-tab-pane label="用户评价" name="estimation"
+                         style="background-color: #ffdeb7; padding: 10px; border-radius: 6px">
+              <el-card style="text-align: left; margin-bottom: 6px" body-style="padding: 10px">
+                <span style="font-weight: 800 ;font-size: 28px; color: #67C23A; margin-right: 3px; margin-left: 20px">
+                  {{ hotelInfo.score }}
+                </span>
+                <span style="font-weight: 600 ;font-size: 18px; color: #67C23A; margin-right: 20px">分</span>
+                <el-tag type="success" effect="dark">
+                  好评率 {{ eHigh.length/eAll.length*100 }}%
+                </el-tag><br>
+                <!--筛选评论类型-->
+                <el-radio-group style="margin-left: 20px; margin-top: 10px; margin-bottom: 5px" v-model="estimationType" @change="filterEstimation">
+                  <el-radio label="全部" style="width: 64px">全部（{{ eAll.length }}）</el-radio>
+                  <el-radio label="好评" style="width: 64px">好评（{{ eHigh.length }}）</el-radio>
+                  <el-radio label="中评" style="width: 64px">差评（{{ eMiddle.length }}）</el-radio>
+                  <el-radio label="差评" style="width: 64px">差评（{{ eLow.length }}）</el-radio>
+                </el-radio-group>
+                <el-button v-if="eOrder" @click="sortEstimation" icon="el-icon-caret-bottom" style="margin-left: 400px" size="small" type="primary">按评论最新</el-button>
+                <el-button v-else @click="sortEstimation" icon="el-icon-caret-top" style="margin-left: 400px" size="small" type="primary">按评论最早</el-button>
+              </el-card>
+              <!--评论内容-->
+              <el-table :show-header="false" :data="estimation" style="width: 100%; min-height: 530px">
+                <el-table-column width="120">
+                  <template #default="scope">
+                    <i class="el-icon-user" style="color:#409EFF;"></i>
+                    <span style="margin-left: 10px; font-weight: 700; color: #409EFF">{{ scope.row.nickName }}</span><br><br><br>
+                  </template>
+                </el-table-column>
+                <el-table-column width="800">
+                  <template #default="scope">
+                    <el-rate v-model="scope.row.star" :icon-classes="iconClasses" style="margin-left: 40px"
+                             disabled-void-color='white' :colors="['#99A9BF', '#F7BA2A', '#FF9900']" disabled>
+                    </el-rate>
+                    <span style="margin-left: 10px; display:block;text-indent:2em">{{ scope.row.content }}</span>
+                    <i class="el-icon-time" style="color: darkgray"></i>
+                    <span style="margin-left: 10px; color: darkgray">发布于 {{ scope.row.time }}</span>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
+          </el-tabs>
+        </el-main>
+      </el-col>
+      <el-col :span="2">
+        <!--快捷导航的固钉-->
+        <el-affix :offset="74">
+          <el-button type="primary" @click="goUp(0)" size="mini" style="margin-bottom: 4px">酒店详情</el-button><br>
+          <el-button type="primary" @click="goUp(1)" size="mini">更多信息</el-button>
+        </el-affix>
+      </el-col></el-row>
+      <el-footer>Copyright ©2021 住哪儿-酒店预定平台</el-footer>
+    </el-container>
+  </el-scrollbar>
 </template>
 
 

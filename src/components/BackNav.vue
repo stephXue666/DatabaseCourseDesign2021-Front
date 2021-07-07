@@ -29,7 +29,7 @@ export default {
         this.title = '管理员后台'
       else {
         if(character.substring(7,11) === 'wait')
-          this.title = '酒店后台(未审核)'
+          this.title = '酒店后台'
         else
           this.title = '酒店后台'
       }

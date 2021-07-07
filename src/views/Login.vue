@@ -332,7 +332,7 @@ export default {
         type: 'success'
       });
       window.sessionStorage.setItem('uid', uid)
-      this.$router.push('/admin/home')
+      this.$router.push('/admin/evaluate')
     },
     //用户注册分流
     register(form) {
@@ -377,8 +377,8 @@ export default {
             gender: form.gender,
             birthday: form.birthday,
             IDNumber: form.IDNumber,
-            nickName: '',
-            phone: '',
+            nickName: 'null',
+            phone: '-1',
           }
           console.log(userInfo)
           //调用接口- 传入用户ID、所有信息，无返回
@@ -428,7 +428,7 @@ export default {
           break
         case 3:
           window.sessionStorage.setItem('uid', '3')
-          this.$router.push('/admin/home')
+          this.$router.push('/admin/evaluate')
           break
         case 4:
           window.sessionStorage.setItem('uid', '2')

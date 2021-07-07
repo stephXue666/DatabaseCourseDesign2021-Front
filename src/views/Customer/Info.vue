@@ -14,7 +14,7 @@
               <i class="el-icon-user"></i>
               用户名
             </template>
-            {{ infoForm.userName }}
+            {{ info.userName }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label style="width: 200px">
@@ -24,7 +24,7 @@
             <el-row>
               <el-col :span="18">
                 <span v-if="isHide">{{ hidePassword }}</span>
-                <span v-else>{{ infoForm.password }}</span>
+                <span v-else>{{ info.password }}</span>
               </el-col>
               <el-col :span="6">
                 <el-button icon="el-icon-view" circle size="mini" @click="changeHide"></el-button>
@@ -39,7 +39,7 @@
               <i class="el-icon-user"></i>
               姓名
             </template>
-            {{ infoForm.name }}
+            {{ info.name }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label>
@@ -47,21 +47,21 @@
               <i class="el-icon-female"></i>
               性别
             </template>
-            {{ infoForm.gender }}
+            {{ info.gender }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label>
               <i class="el-icon-date"></i>
               生日
             </template>
-            {{ infoForm.birthday }}
+            {{ info.birthday }}
           </el-descriptions-item>
           <el-descriptions-item>
             <template #label>
               <i class="el-icon-postcard"></i>
               身份证
             </template>
-            {{ infoForm.IDNumber }}
+            {{ info.IDNumber }}
           </el-descriptions-item>
         </el-descriptions>
         <el-divider/>
@@ -99,14 +99,14 @@
               <i class="el-icon-user"></i>
               昵称
             </template>
-            <label v-if="!isModify">{{ infoForm.nickName }}</label>
+            <label v-if="!isModify">{{ info.nickName }}</label>
           </el-descriptions-item>
           <el-descriptions-item v-if="!isModify">
             <template #label>
               <i class="el-icon-mobile-phone"></i>
               手机号
             </template>
-            <label v-if="!isModify">{{ infoForm.phone }}</label>
+            <label v-if="!isModify">{{ info.phone }}</label>
           </el-descriptions-item>
         </el-descriptions>
       </el-card>
@@ -165,7 +165,7 @@ export default {
       if (value === '') {
         callback(new Error('请输入原密码'));
       }
-      else if (value !== this.infoForm.password) {
+      else if (value !== this.info.password) {
         callback(new Error('原密码错误!'));
       }
       else {
@@ -200,7 +200,7 @@ export default {
     return {
       isModify: false,    //控制修改信息框的显隐
       isReset: false,   //控制修改密码窗口的显隐
-      infoForm: {},
+      info: {},
       modifyForm: {
         old: '',
         new: '',
@@ -228,7 +228,7 @@ export default {
     //获取个人信息
     getInfo() {
       //调用接口- 传入用户ID，返回个人信息
-      this.infoForm = {
+      this.info = {
         userName: 'abc12123',
         password: '123456',
         name: '张三',
@@ -239,7 +239,7 @@ export default {
         phone: '12345678900',
       }
 
-      let hideLen = this.infoForm.password.length
+      let hideLen = this.info.password.length
       this.hidePassword = '***************'.substring(0,hideLen)
     },
     //修改密码显隐状态
@@ -262,9 +262,9 @@ export default {
           //调用接口- 传入用户ID、新密码，无返回
 
           ElMessage.success('密码修改成功')
+          this.info.password = this.modifyForm.new
           this.isReset = false
           this.refs.modifyForm.resetFields()
-          //this.getInfo()
         }
         else {
           return false
@@ -278,8 +278,8 @@ export default {
     },
     //修改信息
     modify() {
-      this.infoModify.newName = this.infoForm.nickName
-      this.infoModify.newPhone = this.infoForm.phone
+      this.infoModify.newName = this.info.nickName
+      this.infoModify.newPhone = this.info.phone
       this.isModify = true
     },
     //提交修改信息
@@ -287,9 +287,9 @@ export default {
       this.$refs['infoModify'].validate((valid) => {
         if (valid) {
           let uid = window.sessionStorage.getItem('uid')
-          this.infoForm.nickName = this.infoModify.newName
-          this.infoForm.phone = this.infoModify.newPhone
-          console.log(uid, this.infoForm)
+          this.info.nickName = this.infoModify.newName
+          this.info.phone = this.infoModify.newPhone
+          console.log(uid, this.info)
           //调用接口- 传入用户ID、所有信息，无返回
 
           ElMessage.success('信息修改成功')
