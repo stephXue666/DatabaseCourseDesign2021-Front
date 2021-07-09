@@ -117,21 +117,23 @@ export default {
       tableData:[],
     }
   },
+
   created(){
     //调用接口-显示昨日流水和入住率：传入（酒店编号）返回（昨日总体流水，整体入住率）
     this.yesterdayOccupancyRate='70';
     this.yesterdayEarning='200000';
-    this.timer = setInterval(this.showTimes, 1000);
+    this.timer=setInterval(this.showTimes, 1000);
     //调用接口-显示今日所有房型剩余数量：传入（酒店编号）返回（房间类型数，房间类型：数量	/总数）
     //将变量roomTypeList赋值给tableData
     for(let item of roomTypeList){
       this.tableData.push(item);
     }
   },
-  beforeRouteLeave() {
-    clearInterval(this.timer)
-    this.timer = null
+  beforeRouteLeave(){
+    this.clearInterval(this.timer);
+    this.timer = null;
   },
+
   methods: {
     //单击选中时，"点亮"当前行
     setCurrent(row) {
