@@ -10,80 +10,50 @@
     class='el-icon-time'>
     浏览记录
     </i>
-    <el-table
-    :data="tableData"
-    style="width = 100%"
-    max-height="500"
-    highlight-current-row
-    @cell-click="handleJumpToHotelPage"
-    @current-change="handleCurrentChange"
-    >
-    <el-table-column
-      fixed
-      prop="time"
-      label="浏览时间"
-      width="200">
-    </el-table-column>
-    <el-table-column
-      prop="hotelName"
-      label="酒店名"
-      width="200">
-    </el-table-column>
-    <el-table-column
-      prop="address"
-      label="地址"
-      min-width="200">
-    </el-table-column>
-    <el-table-column
-      prop="star"
-      label="星级"
-      width="200"
-      align="center">
-      <template #default="scope">
-        <span style="margin-left: 10px">{{ scope.row.star }}</span>
-        <i class="el-icon-star-on"></i>
+    <div style="margin-bottom: 10px;"></div>
+    <el-row>
+    <el-col :span="4"></el-col>
+    <el-col :span="16"><div v-for="(item) in tableData" :key="item.hotelID">
+    <div class="timeLabel"><el-tag type="info" size="mini">{{item.time}}</el-tag></div>
+    <el-card shadow="hover" :body-style="{ padding: '0px' }" style="margin-bottom: 5px;">
+      <el-row>
+      <el-col :span="5">
+      <template v-slot>
+      <el-image
+      class="img"
+      :src="item.url"
+      :fit="contain"
+      @click="handleJumpToHotelPage(item.hotelID)"></el-image>
       </template>
-    </el-table-column>
-    <el-table-column
-      prop="score"
-      label="评分"
-      width="200"
-      align="center">
-      <template #default="scope">
-      <el-rate v-model="scope.row.score" 
-      disabled
-      show-score
-      text-color="#ff9900"
-      score-template="{ value }分"></el-rate>
-      </template>
-    </el-table-column>
-    <el-table-column
-      prop="lowestPrice"
-      label="最低价/天"
-      width="200"
-      align="center">
-    </el-table-column>
-    <!--未加入“评论数”属性-->
-    <!--"删除"操作-->
-    <el-table-column
-      prop="operation"
-      fixed="right"
-      label="操作"
-      width="200"
-      align="center">
-      <template #default="scope">
-        <el-button
-          @click.prevent="deleteRow(scope.$index,tableData)" 
-          icon="el-icon-delete"
-          type="text"
-          size="small">
-          删除
-        </el-button>
-      </template>
-    </el-table-column>
-  </el-table>
+      </el-col>
+      <el-col :span="10">
+      <el-form label-position="left" label-width="60px" style="margin-left:6px;">
+        <el-form-item label="名称" style="margin-bottom:1px"> <span class="hotelDescription">{{item.hotelName}}</span></el-form-item>
+        <el-form-item label="地址" style="margin-bottom:1px"> <span class="hotelDescription">{{item.address}}</span></el-form-item>
+        <el-form-item label="最低价" style="margin-bottom:1px"> <span class="lowestPriceStyle">￥{{item.lowestPrice}}</span></el-form-item>
+      </el-form>
+      </el-col>
+      <el-col :span="5">
+      <el-form label-position="left" label-width="50px" style="margin-left:6px;">
+        <el-form-item label="评分" style="margin-bottom:1px"> <span class="hotelScoreStyle">&nbsp;&nbsp;{{item.score}} 分</span></el-form-item>
+        <el-form-item label="星级" style="margin-bottom:1px"> 
+         <el-rate v-model="item.star" style="font-size: 35px;" disabled="true" show-score text-color="#ff9900" score-template="{value}"></el-rate>
+        </el-form-item>
+      </el-form>
+      </el-col>
+      <el-col :span="4">
+        <template v-slot>
+         <el-button icon="el-icon-delete" size="medium" type="info" @click="handleDeleteHistory(item.hotelID)" style="margin-top: 45px;margin-left: 20px;">删除</el-button>
+        </template>
+      </el-col>
+      </el-row>
+    </el-card>
+  </div>
+    </el-col>
+    <el-col :span="4"> </el-col>
+    </el-row>
     </el-main>
-    <el-footer>Footer</el-footer>
+    <el-footer>Copyright ©2021 住哪儿-酒店预定平台</el-footer>
   </el-container>
 </template>
 
@@ -91,7 +61,9 @@
 import TopNav from "../../components/TopNav";
 
 let historyList=[{
+          hotelID:'h1',
           time: '2016-05-03 15:20:19',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '4',
           address: '上海市普陀区金沙江路 1512 弄',
@@ -99,7 +71,9 @@ let historyList=[{
           lowestPrice:400
         },
         {
+          hotelID:'h2',
           time: '2016-05-03 15:20:20',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '3',
           address: '上海市普陀区金沙江路 1513 弄',
@@ -107,7 +81,9 @@ let historyList=[{
           lowestPrice:100
         },
         {
+          hotelID:'h3',
           time: '2016-05-03 15:20:21',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '2',
           address: '上海市普陀区金沙江路 1514 弄',
@@ -115,7 +91,9 @@ let historyList=[{
           lowestPrice:500
         },
         {
+          hotelID:'h4',
           time: '2016-05-03 15:20:22',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '4',
           address: '上海市普陀区金沙江路 1516 弄',
@@ -123,7 +101,9 @@ let historyList=[{
           lowestPrice:590
         },
         {
+          hotelID:'h5',
           time: '2016-05-03 15:20:23',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '5',
           address: '上海市普陀区金沙江路 1517 弄',
@@ -131,7 +111,9 @@ let historyList=[{
           lowestPrice:510
         },
         {
+          hotelID:'h6',
           time: '2016-05-03 15:20:29',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '1',
           address: '上海市普陀区金沙江路 1517 弄',
@@ -139,7 +121,9 @@ let historyList=[{
           lowestPrice:324
         },
         {
+          hotelID:'h7',
           time: '2016-05-03 15:29:23',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '5',
           address: '上海市普陀区金沙江路 1517 弄',
@@ -147,7 +131,9 @@ let historyList=[{
           lowestPrice:498
         },
         {
+          hotelID:'h8',
           time: '2016-05-03 15:30:23',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '5',
           address: '上海市普陀区金沙江路 1517 弄',
@@ -155,7 +141,9 @@ let historyList=[{
           lowestPrice:465
         },
         {
+          hotelID:'h9',
           time: '2016-05-03 15:40:23',
+          url:'http://121.196.223.20/106/酒店/0.jpg',
           hotelName: '同济招待中心',
           star: '5',
           address: '上海市普陀区金沙江路 1517 弄',
@@ -168,15 +156,14 @@ export default {
 	},
    methods: {
      //"删除"操作
-      deleteRow(index, rows){
+      handleDeleteHistory(hotel_id){
         this.$confirm('是否删除该条记录？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-           rows.splice(index, 1);
           //调用接口-删除历史足迹：传入（用户ID、酒店ID、时间）返回（null）
-          console.log(rows);
+          console.log(hotel_id);
           this.$message({
             type: 'success',
             message: '删除成功!'
@@ -184,24 +171,14 @@ export default {
         }).catch(() => {});
       },
 
-      //单击选中时，"点亮"当前行
-      setCurrent(row) {
-        this.$refs.singleTable.setCurrentRow(row);
-      },
-      handleCurrentChange(val) {
-        this.currentRow = val;
-      },
-
-      //单击除"操作"以外列的单元格，"跳转"到对应"酒店详情"页面
-      handleJumpToHotelPage(row, column, cell, event){
+      //单击酒店图片，"跳转"到对应"酒店详情"页面
+      handleJumpToHotelPage(hotel_id){
         //"跳转"，用"酒店1"的详情页面测试
-        if(column.property !== "operation"){
-          this.$router.push({
-          path: '/details',
-          query: { id: 1 }
-        });
-          console.log(row, event, column);
-        }
+        this.$router.push({
+        path: '/details',
+        query: { id: 1 }
+        })
+        console.log(hotel_id);
       },
    },
 
@@ -220,3 +197,29 @@ export default {
     },
  }
 </script>
+
+<style scoped>
+ .img{
+   cursor: pointer;
+ }
+
+ .timeLabel{
+   padding: 10px 0px 5px 0px;
+ }
+ .hotelDescription{
+   font-size: 16px;
+   float:left;
+ }
+ .lowestPriceStyle{
+   float:left;
+   color: #ff7400;
+   font-weight: bold;
+   font-size: 18px;
+ }
+ .hotelScoreStyle{
+   float:left;
+   font-weight: 600 ;
+   font-size: 18px; 
+   color: #67C23A; 
+ }
+</style>
