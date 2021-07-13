@@ -22,7 +22,7 @@
     <el-col :span="16">
     <div v-for="(item) in tableData" :key="item.hotelID">
     <el-row>
-    <div class="timeLabel"><el-tag size="medium">{{item.time.slice(0,10)+' '+item.time.slice(11,18)}}</el-tag></div>
+    <div class="timeLabel"><el-tag size="medium">{{item.time.replace('T', ' ')}}</el-tag></div>
     </el-row>
     <el-card shadow="hover" :body-style="{ padding: '0px' }" style="margin-bottom: 5px;">
       <el-row>

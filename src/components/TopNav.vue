@@ -44,9 +44,9 @@
     <div class="messageBoard">
     <div v-for="(item) in messageData" :key="item.day_time">
 						<div class="timeLabel">
-							<el-tag type="info" size="mini">{{item.day_time}}</el-tag>
+							<el-tag type="info" size="mini">{{item.day_time.replace('T', ' ')}}</el-tag>
 						</div>
-						<div v-if="item.speaker==1">
+						<div v-if="item.speaker===1">
 							<el-row>
 								<div class="contentAdmin">
 									<span style="line-height: 23px;text-align: left;">{{item.details}}</span>
@@ -91,6 +91,8 @@
 
 
 <script>
+import {ElMessage} from "element-plus";
+
 export default {
   data() {
     return {
@@ -112,11 +114,15 @@ export default {
     logOut() {
       //设置session中的id值为用户ID
       window.sessionStorage.setItem('uid', '0')
+      ElMessage.success('注销成功！')
       this.loginStatus = false
     },
     getLoginStatus() {
       let status = window.sessionStorage.getItem('uid')
       switch (status) {
+        case null:
+          window.sessionStorage.setItem('uid', '0')
+              break
         case '0':
           break
         //若用户id不为0，则设定登录状态为true
