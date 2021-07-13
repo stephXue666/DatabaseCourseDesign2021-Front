@@ -55,48 +55,6 @@
 import SideNav from "../../components/SideNav"
 import BackNav from "../../components/BackNav"
 
-//变量roomTypeList用来接收后端发来的数据，在created()中将数据赋值给tableData
-let roomTypeList=[{
-        roomType:'豪华双人房',
-        totalSpareRoomNum:'15/50',
-      },{
-        roomType:'舒适单人房',
-        totalSpareRoomNum:'11/30',
-      },{
-        roomType:'钟点双人房',
-        totalSpareRoomNum:'22/40',
-      },{
-        roomType:'钟点单人房',
-        totalSpareRoomNum:'5/25',
-      },{
-        roomType:'总统套房',
-        totalSpareRoomNum:'10/10',
-      },{
-        roomType:'经济钟点房',
-        totalSpareRoomNum:'3/25',
-      },{
-        roomType:'常驻单人房',
-        totalSpareRoomNum:'2/10',
-      },{
-        roomType:'_总统套房',
-        totalSpareRoomNum:'10/10',
-      },{
-        roomType:'_经济钟点房',
-        totalSpareRoomNum:'3/25',
-      },{
-        roomType:'_常驻单人房',
-        totalSpareRoomNum:'2/10',
-      },{
-        roomType:'_总统套房',
-        totalSpareRoomNum:'10/10',
-      },{
-        roomType:'_经济钟点房',
-        totalSpareRoomNum:'3/25',
-      },{
-        roomType:'_常驻单人房',
-        totalSpareRoomNum:'2/10',
-      }]
-
 export default {
 	components: {
     BackNav,
@@ -110,28 +68,41 @@ export default {
         backgroundSize: "100% 100%",
       },
       timer:'',
+      h_id: window.sessionStorage.getItem('uid'),
       showTime:'',
-      yesterdayDate:'',
       yesterdayEarning:'',
       yesterdayOccupancyRate:'',
       tableData:[],
     }
   },
+
   created(){
     //调用接口-显示昨日流水和入住率：传入（酒店编号）返回（昨日总体流水，整体入住率）
-    this.yesterdayOccupancyRate='70';
-    this.yesterdayEarning='200000';
-    this.timer = setInterval(this.showTimes, 1000);
+    //改
+    this.axios.get('/zhunar'+'/api/turnover/yid/'+this.h_id).then((response)=>{
+        this.yesterdayEarning=response.data.earning;
+        this.yesterdayOccupancyRate=response.data.occupancy_rate;
+        console.log(response);
+      })
+
+    this.timer=setInterval(this.showTimes, 1000);
     //调用接口-显示今日所有房型剩余数量：传入（酒店编号）返回（房间类型数，房间类型：数量	/总数）
-    //将变量roomTypeList赋值给tableData
-    for(let item of roomTypeList){
-      this.tableData.push(item);
-    }
+    //改
+    this.axios.get('/zhunar'+'/api/hotel/room?id='+this.h_id).then((remainResponse)=>{
+        for(let item of remainResponse.data){
+          this.tableData.push({
+          roomType: item.roomtype,
+          totalSpareRoomNum: item.remaining_num+'/'+item.total_num,
+        });
+      }
+      console.log(remainResponse);
+    })
   },
-  beforeRouteLeave() {
-    clearInterval(this.timer)
-    this.timer = null
+  beforeRouteLeave(){
+    clearInterval(this.timer);
+    this.timer = null;
   },
+
   methods: {
     //单击选中时，"点亮"当前行
     setCurrent(row) {
@@ -142,11 +113,12 @@ export default {
     },
     
     //单击表格，"跳转"到"信息管理"页面
+    //改
     handleJumpToInfo(row, event, column){
       this.$router.push('/hotel/info');
       console.log(row, event, column);
     },
-
+    //改
     handleJumpToReport(){
       this.$router.push('/hotel/report');
     },
