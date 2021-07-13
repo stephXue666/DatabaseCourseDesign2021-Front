@@ -46,7 +46,6 @@
 						<div class="timeLabel">
 							<el-tag type="info" size="mini">{{item.day_time}}</el-tag>
 						</div>
-						<!--将用户发送的消息固定在左边-->
 						<div v-if="item.speaker==1">
 							<el-row>
 								<div class="contentAdmin">
@@ -58,7 +57,7 @@
 							<el-row>
 								<el-col :span="12"></el-col>
 								<el-col :span="12">
-									<el-row>
+									<el-row justify="end">
 										<div class="contentCustomer">
 											<span style="line-height: 23px;text-align: left;">{{item.details}}</span>
 										</div>
@@ -101,54 +100,7 @@ export default {
       isFirstChat:'',
       admin_id:'',
       textarea:'',     //输入文本
-      messageData: [{
-					a_user_id: '1',
-					c_user_id: '0',
-					day_time: '16:01',
-					speaker: '1',
-					details: '您好！这里是CSDN客服部，很高兴为您服务！请问有什么可以帮到您？',
-				}, {
-					a_user_id: '1',
-					c_user_id: '0',
-					day_time: '16:02',
-					speaker: '0',
-					details: '查询上海市同济大学附近的酒店,并返回它们的名称、地址、最低价。',
-				},{
-					a_user_id: '1',
-					c_user_id: '0',
-					day_time: '16:02',
-					speaker: '0',
-					details: '查询上海市同济大学附近的酒店,并返回它们的名称、地址、最低价。',
-				},{
-					a_user_id: '1',
-					c_user_id: '0',
-					day_time: '16:02',
-					speaker: '0',
-					details: '查询上海市同济大学附近的酒店,并返回它们的名称、地址、最低价。',
-				},{
-					a_user_id: '1',
-					c_user_id: '0',
-					day_time: '16:02',
-					speaker: '0',
-					details: '查询上海市同济大学附近的酒店,并返回它们的名称、地址、最低价。',
-				},{
-					a_user_id: '1',
-					c_user_id: '0',
-					day_time: '16:02',
-					speaker: '0',
-					details: '查询上海市同济大学附近的酒店,并返回它们的名称、地址、最低价。',
-				},{
-					a_user_id: '1',
-					c_user_id: '0',
-					day_time: '16:02',
-					speaker: '0',
-					details: '查询上海市同济大学附近的酒店,并返回它们的名称、地址、最低价。',
-				}, ], //聊天信息
-				messagesBoxSyle: {
-					minWidth: '75%',
-					minHeight: '80vh',
-					// 'background-color': ' #b8e026'
-				},  //聊天信息
+      messageData: [], //聊天信息
       timer:'',        //计时器
     }
   },
@@ -167,7 +119,8 @@ export default {
       switch (status) {
         case '0':
           break
-        case '1':
+        //若用户id不为0，则设定登录状态为true
+        default:
           this.loginStatus = true
           break
       }
@@ -175,10 +128,17 @@ export default {
     openDialog(){
       //打开客服交流对话框
       this.dialogVisible = true;
-      //调用接口-判断用户是否是第一次查询：传入用户id(window.sessionStorage.getItem'uid') -返回管理员id（存储到admin_id中）
+      console.log(window.sessionStorage.getItem('uid'));
+
+      //调用接口-判断用户是否是第一次查询：传入用户id -返回管理员id（存储到admin_id中）
+      //改
+        this.axios.get('/zhunar'+'/api/chatrecord/judgefirst/'+window.sessionStorage.getItem('uid')).then((response)=>{
+        this.admin_id = response.data;
+      })
+
       //打开时获取一次聊天信息，然后每五秒获取一次 
       this.getMessageData();
-      this.timer = setInterval(this.getMessageData, 5000);
+      this.timer = setInterval(this.getMessageData, 1000);
     },
     closeDialog(){
       //关闭对话框，清除计时器
@@ -188,11 +148,28 @@ export default {
     },
     getMessageData(){
       //调用接口-查询聊天记录：请求参数：用户id（window.sessionStorage.getItem'uid'） -返回：两者的聊天记录ChatRecord（list
+      //改
+      this.axios.get('/zhunar'+'/api/chatrecord/c_user_id/'+window.sessionStorage.getItem('uid')).then((chatResponse)=>{
+      console.log(chatResponse);
+      this.messageData=[];
+      for(let item of chatResponse.data){
+          this.messageData.push(item);
+        }
+      })
       console.log("获取聊天信息");
     },
+
     handleSendMessage(){
       //点击“发送”按钮或按回车，发送textarea中的文本，同时清空输入栏并刷新一次聊天信息。
-      //调用接口-增加聊天记录：请求参数：ChatRecord除了时间以外的所有参数{admin_id,window.sessionStorage.getItem'uid','0',textarea,} - 返回：success
+      //调用接口-增加聊天记录：请求参数：ChatRecord除了时间以外的所有参数{admin_id,window.sessionStorage.getItem('uid'),'0',textarea,} - 返回：success
+      let message={
+        a_user_id:this.admin_id,
+        c_user_id:parseInt(window.sessionStorage.getItem('uid')),//改
+        speaker:0,
+        details:this.textarea,
+      }
+      console.log(window.sessionStorage.getItem('uid'));
+      this.axios.post('/zhunar'+'/api/chatrecord/add',message);
       console.log(this.textarea);
       this.textarea = '';
       this.getMessageData();
