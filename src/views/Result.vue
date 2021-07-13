@@ -1,12 +1,12 @@
 <template>
-<!-- <div style="
+<div style="
         background-image: url(//s2.hdslb.com/bfs/static/blive/blfe-dynamic-web/static/img/background.bc725153.png);
         background-repeat: no-repeat;
-        position:fixed;
-        background-size:100% 100%;"> -->
+        background-attachment: fixed;
+        background-size:100% 100%;">
   <top-nav />
   <el-affix>
-    <el-card style="border-radius: 0px">
+    <el-card style="border-radius: 0px;  background: rgba(256, 256, 256, 0.85);">
       <el-row>
         <el-col :span="6">
           <div class="topInfo" style="margin-left:10%">
@@ -357,7 +357,7 @@
       </el-card>
     </el-affix>
   </el-container>
-  <el-footer style="margin: 30px">
+  <div style="padding:35px 0px 30px 0px">
     <el-pagination
       @current-change="currentPageChange"
       @prev-click="currentPageChange"
@@ -369,8 +369,13 @@
       :hide-on-single-page="true"
     >
     </el-pagination>
+  </div>
+  </div>
+  <el-footer style="background-color: #f6f9fa; height:100%">
+    <p style="margin:0px; padding:30px 0px 40px 0px">
+      Copyright ©2021 住哪儿-酒店预定平台
+    </p>
   </el-footer>
-<!-- </div> -->
 </template>
 
 <script>
@@ -387,6 +392,9 @@ export default {
     this.searchInput = this.$route.query.searchInput; // 获取用户输入的关键字
     if(this.searchCity[1] == undefined){
       this.searchCity = ['上海市','上海市'];
+    }
+    if(this.searchRadio != "region" && this.searchRadio != "hotel"){
+      this.searchRadio = "region";
     }
     this.map = new BMap.Map("mapCard"); // 创建Map实例
     this.map.centerAndZoom(this.searchCity[1], 13); // 初始化地图,设置中心点坐标和地图级别
@@ -530,6 +538,8 @@ export default {
     searchButtonClicked() {
       window.scrollTo(0,0); // 窗口返回顶部
       this.loadingHotelData = true; // 设置为正在加载
+      this.$router.push({ path: '/result', query: { 
+        province:this.searchCity[0], city:this.searchCity[1], searchRadio:this.searchRadio, searchInput:this.searchInput }})
       if (this.searchRadio == "region" && !!this.searchInput) { // 如果输入地点，则找到此地点经纬度
         this.axios
         .get( // 调用地点查询接口
@@ -580,7 +590,7 @@ export default {
       url += "city=" + this.searchCity[1] + "&";
       url += "star=" + this.hotelStars + "&";
       url += "interval=" + this.hotelPrice + "&";
-      if(this.searchRadio === "hotel"){
+      if(this.searchRadio === "hotel" && !!this.searchInput){
         url += "name=" + this.searchInput + "&";
       }
       url += "lat=" + this.searchPoint.lat + "&";
@@ -600,8 +610,6 @@ export default {
           this.currentPage = 1; // 每次搜索后跳回第一页
         }
         this.loadingHotelData = false;
-
-        console.log(this.hotelData)
       });
     },
 
@@ -695,7 +703,7 @@ export default {
 
     // 跳转至酒店详情页面
     turnToDetailedPage(i) {
-      let hotelID = this.hotelData[this.hotelIndex[i]].hotel_id; // 得到酒店ID跳转页面
+      let hotelID = this.hotelData[i].hotel_id; // 得到酒店ID跳转页面
       this.$router.push({ path: '/details', query: { id: hotelID }});
     },
   },
