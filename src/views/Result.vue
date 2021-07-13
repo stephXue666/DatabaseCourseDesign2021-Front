@@ -383,7 +383,6 @@ export default {
   },
   mounted() {
     this.searchCity = [this.$route.query.province,this.$route.query.city]; // 获取省市
-    console.log(this.searchCity);
     this.searchRadio = this.$route.query.searchRadio; // 获取关键字类型
     this.searchInput = this.$route.query.searchInput; // 获取用户输入的关键字
     if(this.searchCity[1] == undefined){
@@ -486,7 +485,7 @@ export default {
         cb(autoCompleteData);
       }
       else if(this.searchRadio === 'hotel'){ // 酒店自动联想
-        let url = "https://localhost:5001/api/hotel/get/";
+        let url = "/zhunar/api/hotel/get/";
         url += this.searchCity[0] + "?";
         url += "city=" + this.searchCity[1] + "&";
         url += "star=" + this.hotelStars + "&";
@@ -511,7 +510,7 @@ export default {
         // 调用地点查询接口
         this.axios
           .get(
-              "/proxy/place/v2/suggestion?query=" +
+              "/baidu/place/v2/suggestion?query=" +
                 queryString +
                 "&region=" +
                 this.searchCity[1] +
@@ -534,7 +533,7 @@ export default {
       if (this.searchRadio == "region" && !!this.searchInput) { // 如果输入地点，则找到此地点经纬度
         this.axios
         .get( // 调用地点查询接口
-            "/proxy/place/v2/suggestion?query=" +
+            "/baidu/place/v2/suggestion?query=" +
               this.searchInput +
               "&region=" +
               this.searchCity[1] +
@@ -547,7 +546,7 @@ export default {
       } else { // 如果输入酒店名，则找城市中心点经纬度
         this.axios
           .get( // 调用地点查询接口
-            "/proxy/place/v2/suggestion?query=" +
+            "/baidu/place/v2/suggestion?query=" +
               this.searchCity[1] +
               "&region=" +
               this.searchCity[1] +
@@ -576,7 +575,7 @@ export default {
       this.map.clearOverlays(); // 地图清除覆盖物
 
       // 调用接口搜索酒店
-      let url = "https://localhost:5001/api/hotel/get/";
+      let url = "/zhunar/api/hotel/get/";
       url += this.searchCity[0] + "?";
       url += "city=" + this.searchCity[1] + "&";
       url += "star=" + this.hotelStars + "&";
@@ -601,6 +600,8 @@ export default {
           this.currentPage = 1; // 每次搜索后跳回第一页
         }
         this.loadingHotelData = false;
+
+        console.log(this.hotelData)
       });
     },
 
