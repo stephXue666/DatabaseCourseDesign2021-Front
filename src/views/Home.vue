@@ -1,194 +1,344 @@
 <template>
   <el-container>
     <el-header style="padding: 0">
-      <top-nav/>
+      <top-nav />
     </el-header>
     <el-main>
-      <!--这里写代码-->
-      <el-row>
-    <el-col :span="7" :offset="3">
-      <el-card class="box-card">
-        <el-form ref="form" :model="form" :rules="rules">
-          <br />
-          <el-divider><h2>酒店搜索</h2></el-divider>
-          <el-form-item style="text-align: left">
-            <el-radio v-model="form.keyWord" label="酒店名">酒店名</el-radio>
-            <el-radio v-model="form.keyWord" label="关键词">关键词</el-radio>
-          </el-form-item>
-          <el-form-item prop="search">
-            <el-cascader
-           v-model="place"
-              placeholder="目的地"
-              :options="options"
+      <el-container style="height: 312px; margin-left: 9%">
+        <el-card class="box-card" style="width: 33%; height: 97%">
+          <el-form ref="form" :model="form" :rules="rules">
+            <el-divider><h2>酒店搜索</h2></el-divider>
+            <el-form-item style="text-align: left">
+              <el-radio v-model="form.keyWord" label="目的地">目的地</el-radio>
+              <el-radio v-model="form.keyWord" label="酒店名">酒店名</el-radio>
+            </el-form-item>
+            <el-form-item prop="search">
+              <el-cascader
+                v-model="place"
+                placeholder="城市"
+                :options="options"
+                style="width: 100%"
+                filterable
+              ></el-cascader>
+            </el-form-item>
+            <el-form-item>
+              <el-input
+                :placeholder="form.keyWord"
+                v-model="KeyWordValue"
+              ></el-input>
+            </el-form-item>
+            <el-button
+              type="primary"
+              @click="onSubmit"
               style="width: 100%"
-              filterable
-            ></el-cascader>
-          </el-form-item>
-          <el-form-item>
-            <el-input
-              :placeholder="form.keyWord"
-              v-model="KeyWordValue"
-            ></el-input>
-          </el-form-item>
-          <el-button type="primary" @click="onSubmit" style="width: 100%" round
-            >搜索</el-button
+              round
+              >搜索</el-button
+            >
+          </el-form>
+        </el-card>
+        <el-carousel style="height: 100%; width: 53.5%; margin-left: 3%">
+          <el-carousel-item v-for="item in imagelist.length" :key="item">
+            <el-image
+              style="height: 100%; width: 100%"
+              :src="imagelist[item - 1]"
+            ></el-image>
+          </el-carousel-item>
+        </el-carousel>
+      </el-container>
+      <p style="text-align: left; font-size: 25px; margin-left: 9%">
+        酒店推荐
+      </p>
+      <el-container
+        direction="vertical"
+        style="margin-left: 9%; margin-right: 9%"
+      >
+        <el-container style="height: 350px">
+          <div
+            @click="onSubmitImage('重庆市','重庆市')"
+            class="container"
+            style="
+              width: 50%;
+              border-radius: 10px;
+              background-image: url('http://121.196.223.20/首页城市/重庆.jpg');
+              background-size: 100% 100%;
+            "
           >
-        </el-form>
-      </el-card>
-    </el-col>
-    <el-col :span="9" :offset="1">
-      <el-carousel height="335px" width="590px">
-        <el-carousel-item v-for="item in 4" :key="item">
-          <el-image
-            src="https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg"
-          ></el-image>
-        </el-carousel-item>
-      </el-carousel>
-    </el-col>
-    <el-col :span="4"></el-col>
-  </el-row>
-  <el-row>
-    <el-col :offset="3" :span="2">
-      <p style="text-align: left; font-size: 25px">酒店推荐</p></el-col
-    >
-  </el-row>
-  <el-row>
-    <el-col :span="7" :offset="3"
-      ><el-tabs v-model="activeName" @tab-click="changeCity">
-        <el-tab-pane label="北京" name="first"></el-tab-pane>
-        <el-tab-pane label="上海" name="second"></el-tab-pane>
-        <el-tab-pane label="广州" name="third"></el-tab-pane>
-        <el-tab-pane label="深圳" name="fourth"></el-tab-pane>
-        <el-tab-pane label="南京" name="fifth"></el-tab-pane> </el-tabs
-    ></el-col>
-  </el-row>
-  <el-space wrap :size="12" v-for="i in 4" :key="i">
-    <el-card
-      shadow="hover"
-      class="hotelCardItem"
-      :body-style="{ padding: '0px' }"
-    >
-      <el-image
-        src="https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg"
-        style="padding: 0px; border-radius: 10px"
-      ></el-image>
-      <p style="text-align: left; margin: 5px">{{ hotel[0].hotelName }}</p>
-      <p style="text-align: left; margin: 5px" class="score">
-        {{ hotel[0].hotelScore }}分
-        <span class="pinglun">{{ hotel[0].hotelCommentsSum }}条评论</span>
-      </p>
-      <p style="text-align: right; margin: 6px" class="price">
-        ￥{{ hotel[0].hotelPrice }}
-        <span class="qi">起</span>
-      </p>
-    </el-card>
-  </el-space>
-  <br />
-  <el-space wrap :size="12" v-for="i in 4" :key="i">
-    <el-card
-      shadow="hover"
-      class="hotelCardItem"
-      :body-style="{ padding: '0px' }"
-    >
-      <el-image
-        src="https://cube.elemecdn.com/6/94/4d3ea53c084bad6931a56d5158a48jpeg.jpeg"
-        style="padding: 0px; border-radius: 10px"
-      ></el-image>
-      <p style="text-align: left; margin: 5px">{{ hotel[0].hotelName }}</p>
-      <p style="text-align: left; margin: 5px" class="score">
-        {{ hotel[0].hotelScore }}分
-        <span class="pinglun">{{ hotel[0].hotelCommentsSum }}条评论</span>
-      </p>
-      <p style="text-align: right; margin: 6px" class="price">
-        ￥{{ hotel[0].hotelPrice }}
-        <span class="qi">起</span>
-      </p>
-    </el-card>
-  </el-space>
-      <!--测试暂时用代码代替，后续用表格存放酒店列表-->
-      <!-- <el-button @click="toDetails(1)">酒店1</el-button> -->
+          <div>
+            <p class="cityword" style="margin-top: 20%">重庆</p>
+            <span class="citywords">—— ChongQing ——</span>
+            </div>
+            <div class="layer">
+              <p class="cityword" style="margin-top: 20%">重庆</p>
+              <span class="citywords">—— ChongQing ——</span>
+              <br />
+              <br />
+              <span class="elbutton">查看详情</span>
+            </div>
+          </div>
+
+          <div
+            @click="onSubmitImage('广东省','广州市')"
+            class="container"
+            style="
+              margin-left: 2px;
+              width: 50%;
+              border-radius: 10px;
+              background-image: url('http://121.196.223.20/首页城市/广州.jpg');
+              background-size: 100% 100%;
+            "
+          >
+          <div>
+            <p class="cityword" style="margin-top: 20%">广州</p>
+            <span class="citywords">—— GuangZhou ——</span>
+            </div>
+            <div class="layer">
+            <p class="cityword" style="margin-top: 20%">广州</p>
+            <span class="citywords">—— GuangZhou ——</span>
+            <br />
+              <br />
+              <span class="elbutton">查看详情</span>
+            </div>
+          </div>
+        </el-container>
+
+        <el-container style="height: 400px; margin-top: 2px">
+          <el-container direction="vertical" style="width: 36%">
+            <div
+              @click="onSubmitImage('江苏省','南京市')"
+              class="container"
+              style="
+                width: 100%;
+                height: 50%;
+                border-radius: 10px;
+                background-image: url('http://121.196.223.20/首页城市/南京.jpg');
+                background-size: 100% 100%;
+              "
+            >
+            <div>
+              <p class="cityword" style="font-size: 29px; margin-top: 11%">
+                南京
+              </p>
+              <span class="citywords" style="font-size: 15px"
+                >—— NanJing ——</span
+              >
+              </div>
+              <div class="layer">
+                  <p class="cityword" style="font-size: 29px; margin-top: 11%">
+                南京
+              </p>
+              <span class="citywords" style="font-size: 15px"
+                >—— NanJing ——</span
+              >
+              <br />
+              <br />
+              <span class="elbutton">查看详情</span>
+              </div>
+            </div>
+            <div
+              @click="onSubmitImage('广东省','深圳市')"
+              class="container"
+              style="
+                margin-top: 2px
+                width: 100%;
+                height: 50%;
+                border-radius: 10px;
+                background-image: url('http://121.196.223.20/首页城市/深圳.jpg');
+                background-size: 100% 100%;
+              "
+            >
+              <div>
+                <div>
+                  <p class="cityword" style="font-size: 29px; margin-top: 11%">
+                    深圳
+                  </p>
+                  <span class="citywords" style="font-size: 15px"
+                    >—— ShenZhen ——</span
+                  >
+                </div>
+                <div class="layer">
+                  <p class="cityword" style="font-size: 29px; margin-top: 11%">
+                    深圳
+                  </p>
+                  <span class="citywords" style="font-size: 15px"
+                    >—— ShenZhen ——</span
+                  >
+                  <br />
+                  <br />
+                  <span class="elbutton">查看详情</span>
+                </div>
+              </div>
+            </div>
+          </el-container>
+
+          <div
+            @click="onSubmitImage('上海市','上海市')"
+            class="container"
+            style="
+              margin-left: 3px;
+              width: 64%;
+              height: 99.8%;
+              border-radius: 10px;
+              background-image: url('http://121.196.223.20/首页城市/上海.jpg');
+              background-size: 100% 100%;
+            "
+          >
+            <div>
+              <div>
+                <p class="cityword" style="margin-top: 20%">上海</p>
+                <span class="citywords">—— ShangHai ——</span>
+              </div>
+              <div class="layer">
+                <p class="cityword" style="margin-top: 20%">上海</p>
+                <span class="citywords">—— ShangHai ——</span>
+                <br />
+                <br />
+                <span class="elbutton">查看详情</span>
+              </div>
+            </div>
+          </div>
+        </el-container>
+
+        <el-container style="height: 360px; margin-top: 2px">
+          <div
+            @click="onSubmitImage('海南省','三亚市')"
+            class="container"
+            style="
+              width: 75%;
+              height: 100%;
+              border-radius: 10px;
+              background-image: url('http://121.196.223.20/首页城市/三亚.jpg');
+              background-size: 100% 100%;
+            "
+          >
+          <div>
+            <p class="cityword" style="margin-top: 14%">三亚</p>
+            <span class="citywords">—— SanYa ——</span>
+            </div>
+            <div class="layer">
+            <p class="cityword" style="margin-top: 14%">三亚</p>
+            <span class="citywords">—— SanYa ——</span>
+            <br />
+              <br />
+              <span class="elbutton">查看详情</span>
+            </div>
+          </div>
+
+          <div
+          @click="onSubmitImage('北京市','北京市')"
+            class="container"
+            style="
+              margin-left: 2px;
+              width: 25%;
+              height: 100%;
+              border-radius: 10px;
+              background-image: url('http://121.196.223.20/首页城市/北京.jpg');
+              background-size: 100% 100%;
+            "
+          >
+          <div >
+            <p class="cityword" style="margin-top: 46%">北京</p>
+            <span class="citywords">—— BeiJing ——</span>
+            </div>
+            <div class="layer" >
+              <p class="cityword" style="margin-top: 46%">北京</p>
+            <span class="citywords">—— BeiJing ——</span>
+              <br />
+              <br />
+              <span class="elbutton">查看详情</span>
+            </div>
+          </div>
+        </el-container>
+      </el-container>
     </el-main>
-    <el-footer>Footer</el-footer>
   </el-container>
 </template>
 
 <script>
 import TopNav from "../components/TopNav";
-import { ElMessage } from 'element-plus'
+import { ElMessage } from "element-plus";
 export default {
-	components: {
-    TopNav
-	},
-	data() {
+  components: {
+    TopNav,
+  },
+  data() {
     return {
       activeName: "",
-      place:"",//目的地
+      place: "", //目的地
       KeyWordValue: "",
+      imagelist: [
+        "http://121.196.223.20/首页滚动图片/登高.jpg",
+        "http://121.196.223.20/首页滚动图片/广告.jpg",
+        "http://121.196.223.20/首页滚动图片/红色.jpg",
+        "http://121.196.223.20/首页滚动图片/齐鲁.jpg",
+      ],
       form: {
         search: "",
-        keyWord: "酒店名",
+        keyWord: "目的地",
       },
       rules: {
         search: [
           { required: true, message: "请输入目的地名称", trigger: "blur" },
         ],
       },
-      hotel: [
-        {
-          hotelName: "上海田园酒店",
-          hotelAddress: "",
-          hotelScore: 5,
-          hotelCommentsSum: 233,
-          hotelPrice: 500,
-        },
-      ],
       options: [
         {
-          value: "beijing",
+          value: "北京市",
           label: "北京",
-          children: [{ value: "beijing", label: "北京" }],
+          children: [{ value: "北京市", label: "北京" }],
         },
         {
-          value: "shanghai",
+          value: "上海市",
           label: "上海",
-          children: [{ value: "shanghai", label: "上海" }],
+          children: [{ value: "上海市", label: "上海" }],
         },
         {
-          value: "guangdong",
+          value: "广东省",
           label: "广东",
           children: [
-            { value: "guangzhou", label: "广州" },
-            { value: "shenzhen", label: "深圳" },
+            { value: "广州市", label: "广州" },
+            { value: "深圳市", label: "深圳" },
           ],
         },
         {
-          value: "jiangsu",
+          value: "江苏省",
           label: "江苏",
-          children: [{ value: "nanjing", label: "南京" }],
+          children: [{ value: "南京市", label: "南京" }],
         },
       ],
     };
   },
   methods: {
-   onSubmit()
-   {
-     console.log(this.place)
-     if(this.place.length==0)
-     {
-       ElMessage.error('亲,请输入目的地哦');
-     }
-   },
-    changeCity() {
-
+    onSubmit() {
+      console.log(this.place[0],this.place[1]);
+      if (this.place.length == 0) {
+        ElMessage.error("亲,请输入目的地哦");
+      } else {
+        this.$router.push({
+          path: "./Result",
+          query: {
+            province: this.place[0],
+            city: this.place[1],
+            searchRadio: this.form.keyWord == "目的地" ? "region" : "hotel",
+            searchInput: this.KeyWordValue,
+          },
+        });
+      }
     },
-    toDetails(hid) {
+    onSubmitImage(Province,City)
+    {
+      console.log(Province,City)
       this.$router.push({
-        path: '/details',
-        query: { id: hid }
-      })
-    }
+          path: "./Result",
+          query: {
+            province: Province,
+            city:City,
+            searchRadio: this.form.keyWord == "目的地" ? "region" : "hotel",
+            searchInput: "",
+          },
+        });
+    },
   },
-}
+};
 </script>
 
 <style scoped>
@@ -211,6 +361,44 @@ export default {
   border-radius: 6px;
   width: 260px;
   margin-bottom: 10px;
+}
+.cityword {
+  margin-bottom: 5px;
+  font-size: 35px;
+  color: white;
+}
+.citywords {
+  font-size: 15px;
+  color: white;
+  margin-top: 5%;
+}
+.container {
+  position: relative;
+  border-radius: 10px;
+  display: inline;
+}
+.layer {
+  position: absolute;
+  border-radius: 10px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(8, 8, 8, 0.6);
+  display: none;
+}
+.container:hover .layer {
+  display: block;
+  cursor: pointer;
+}
+.elbutton{
+  text-align: center;
+  width: 100px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid white;
+  background-color: transparent;
+  color:white;
 }
 </style>
 
