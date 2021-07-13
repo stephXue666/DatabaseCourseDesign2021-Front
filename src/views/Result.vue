@@ -530,6 +530,8 @@ export default {
     searchButtonClicked() {
       window.scrollTo(0,0); // 窗口返回顶部
       this.loadingHotelData = true; // 设置为正在加载
+      this.$router.push({ path: '/result', query: { 
+        province:this.searchCity[0], city:this.searchCity[1], searchRadio:this.searchRadio, searchInput:this.searchInput }})
       if (this.searchRadio == "region" && !!this.searchInput) { // 如果输入地点，则找到此地点经纬度
         this.axios
         .get( // 调用地点查询接口
@@ -600,8 +602,6 @@ export default {
           this.currentPage = 1; // 每次搜索后跳回第一页
         }
         this.loadingHotelData = false;
-
-        console.log(this.hotelData)
       });
     },
 
@@ -695,7 +695,7 @@ export default {
 
     // 跳转至酒店详情页面
     turnToDetailedPage(i) {
-      let hotelID = this.hotelData[this.hotelIndex[i]].hotel_id; // 得到酒店ID跳转页面
+      let hotelID = this.hotelData[i].hotel_id; // 得到酒店ID跳转页面
       this.$router.push({ path: '/details', query: { id: hotelID }});
     },
   },
