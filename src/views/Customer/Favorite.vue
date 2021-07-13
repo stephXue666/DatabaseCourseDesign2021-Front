@@ -29,9 +29,9 @@
       </el-col>
       <el-col :span="10">
       <el-form label-position="left" label-width="60px" style="margin-left:6px;">
-        <el-form-item label="名称" style="margin-bottom:1px"> <span class="hotelDescription">{{item.hotelName}}</span></el-form-item>
-        <el-form-item label="地址" style="margin-bottom:1px"> <span class="hotelDescription">{{item.address}}</span></el-form-item>
-        <el-form-item label="最低价" style="margin-bottom:1px"> <span class="lowestPriceStyle">￥{{item.lowestPrice}}</span></el-form-item>
+        <el-form-item label="名称" style="margin-bottom:1px;text-align:left;"> <span class="hotelDescription">{{item.hotelName}}</span></el-form-item>
+        <el-form-item label="地址" style="margin-bottom:1px;text-align:left;"> <span class="hotelDescription">{{item.address}}</span></el-form-item>
+        <el-form-item label="最低价" style="margin-bottom:1px;text-align:left;"> <span class="lowestPriceStyle">￥{{item.lowestPrice}}</span></el-form-item>
       </el-form>
       </el-col>
       <el-col :span="5">
@@ -61,132 +61,77 @@
 <script>
 import TopNav from "../../components/TopNav";
 
-let favoriteList=[{
-          hotelID: 'h20:19',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '4',
-          address: '上海市普陀区金沙江路 1512 弄',
-          score: 4.1,
-          lowestPrice:400
-        },
-        {
-          hotelID: 'h20:20',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '3',
-          address: '上海市普陀区金沙江路 1513 弄',
-          score: 4.2,
-          lowestPrice:100
-        },
-        {
-          hotelID: 'h20:21',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '2',
-          address: '上海市普陀区金沙江路 1514 弄',
-          score: 4.3,
-          lowestPrice:500
-        },
-        {
-          hotelID: 'h20:22',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '4',
-          address: '上海市普陀区金沙江路 1516 弄',
-          score: 4.4,
-          lowestPrice:590
-        },
-        {
-          hotelID: 'h20:23',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 4.5,
-          lowestPrice:510
-        },
-        {
-          hotelID: 'h20:29',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '1',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 4.9,
-          lowestPrice:324
-        },
-        {
-          hotelID: 'h29:23',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 3.1,
-          lowestPrice:498
-        },
-        {
-          hotelID: 'h30:23',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 4.5,
-          lowestPrice:465
-        },
-        {
-          hotelID: 'h40:23',
-          url:'http://121.196.223.20/106/酒店/0.jpg',
-          hotelName: '同济招待中心',
-          star: '5',
-          address: '上海市普陀区金沙江路 1517 弄',
-          score: 3.5,
-          lowestPrice:455}]
-
 export default {
 	components: {
     TopNav,
 	},
 
   methods:{
+    getFavoriteTable(){
+      //调用接口-列表显示收藏的酒店：传入（用户ID）返回（酒店简要信息）  
+      //改
+      this.axios.get('/zhunar/api/favorite/cid/'+this.c_id).then((favoriteResponse)=>{
+      console.log(favoriteResponse);
+      for(let item of favoriteResponse.data){
+          this.tableData.push({
+          hotelID: item.hotel_id,
+          time: item.day_time,
+          hotelName: item.myname,
+          star: item.star_level,
+          address: ((item.province === item.city)?item.province:(item.province+item.city)) + item.region + item.location,
+          url:'http://121.196.223.20/'+item.hotel_id+'/酒店/0.jpg',
+          score: item.score,
+          lowestPrice: item.lowestPrice,
+        });
+        }
+      })
+    },
+
     //"取消收藏"操作
     handleDeleteCollection(hotel_id){
+      console.log(hotel_id);
       this.$confirm('是否取消收藏？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          //调用接口-取消收藏：传入（用户ID、酒店ID）返回（null）
-          console.log(hotel_id);
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        //调用接口-取消收藏：传入（用户ID、酒店ID）返回（null）
+        //改
+        this.axios.delete('/zhunar'+'/api/favorite/delete/'+this.c_id+'/'+hotel_id).then(response =>{
+          console.log(response)
+          }).finally(() => {
+          this.tableData=[],
+          this.getFavoriteTable();//清空tableData，然后再次调用接口获取最新的收藏夹
+          });
           this.$message({
             type: 'success',
-            message: '取消收藏成功!'
+            message: '删除成功!'
           });
-        }).catch(() => {});
+          console.log(hotel_id);
+      }).catch(() => {});
     },
 
     //单击酒店图片，"跳转"到对应"酒店详情"页面
     handleJumpToHotelPage(hotel_id){
       //"跳转"，用"酒店1"的详情页面测试
+      //改
       console.log(hotel_id);
       this.$router.push({
         path: '/details',
-        query: { id: 1 },
+        query: { id: hotel_id },
       });
     },
   },
 
   data() {
-      //调用接口-列表显示收藏的酒店：传入（用户ID）返回（酒店简要信息）
       return {
         tableData: [],
+        c_id:window.sessionStorage.getItem('uid'),
       }
     },
   
-  created(){
-    //将变量favoriteList赋值给tableData
-    for(let item of favoriteList){
-      this.tableData.push(item);
-    }
+  created(){  
+    this.getFavoriteTable();
   },
 }
 </script>
