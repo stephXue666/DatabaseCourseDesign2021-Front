@@ -3,7 +3,7 @@
     <el-header style="background-color: #2c3e50; color: white">
       <back-nav/>
     </el-header>
-    <el-container style="height: 100%" >
+    <el-container >
       <el-aside width="200px" style="background-color: #545c64">
         <side-nav/>
       </el-aside>

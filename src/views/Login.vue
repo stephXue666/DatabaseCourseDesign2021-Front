@@ -83,19 +83,11 @@
       </el-form>
     </el-dialog>
   </div>
-  <!--暂时用按钮跳转，后续用表单提交，结果正确时跳转-->
-  <div>
-    <el-button @click="testLogIn(1)">登录住户成功</el-button>
-    <el-button @click="testLogIn(2)">登录酒店成功</el-button>
-    <el-button @click="testLogIn(4)">登录酒店未审核</el-button>
-    <el-button @click="testLogIn(3)">登录管理员成功</el-button>
-    <el-button @click="testLogIn(0)">返回</el-button>
-    <el-button @click="test">测试</el-button>
-  </div>
 </template>
 
 <script>
-import { ElMessage } from 'element-plus'
+import {ElMessage} from 'element-plus'
+
 export default {
   data() {
     //登录账户验证规则
@@ -121,44 +113,51 @@ export default {
       }
       else {
         let isUsed = false
+        let url = ''
         switch (this.registerForm.type) {
           case '住户':
-            //调用接口- 给账号密码，返回是否有相同账号
-            isUsed = (value === 'test')
-
+            //调用接口+ 给账号密码，返回是否有相同账号
+            url = 'zhunar/api/customeraccount/username/'
+            url = url + value
+            this.axios.post(url).then((response) => {
+              isUsed = !response.data
+              if(isUsed) {
+                callback(new Error('该用户名已存在!'));
+              }
+              else {
+                callback();
+              }
+            })
             break
           case '酒店':
-            //调用接口- 给账号密码，返回是否有相同账号
-            isUsed = (value === 'test')
-
+            //调用接口+ 给账号密码，返回是否有相同账号
+            url = 'zhunar/api/hotelaccount/Login/'
+            url = url + value + '/' + '66666'
+            this.axios.get(url).then((response) => {
+              console.log(response.data)
+              if(response.data.result==='用户名不存在') {
+                callback()
+              } else {
+                callback(new Error('该用户名已存在!'))
+              }
+            })
             break
-          case '管理员':
-            //调用接口- 给账号密码，返回是否有相同账号
-            isUsed = (value === 'test')
-
-            break
-
-        }
-        if (isUsed) {
-          callback(new Error('该账号已存在!'));
-        }
-        else {
-          callback();
         }
       }
     };
     //注册密码验证规则
     const validateNewPassword = (rule, value, callback) => {
+      const regNumber = /\d+/; //验证0-9的任意数字最少出现1次。
+      const regString = /[a-zA-Z]+/; //验证大小写26个字母任意字母最少出现1次。
       if (value === '') {
-        callback(new Error('请输入密码'));
-      }
-      else if (value.length < 6) {
-        callback(new Error('密码应不少于6位'));
-      }
-      else if(value.length > 15) {
-        callback(new Error('密码应不超过15位'));
-      }
-      else {
+        callback(new Error('请输入新密码'));
+      } else if (value.length < 8) {
+        callback(new Error('密码应不少于8位'));
+      } else if (value.length > 20) {
+        callback(new Error('密码应不超过20位'));
+      } else if (!regNumber.test(value) || !regString.test(value)) {
+        callback(new Error('密码应同时包含数字与字母'));
+      } else {
         callback();
       }
     };
@@ -250,14 +249,6 @@ export default {
     }
   },
   methods: {
-    //测试功能
-    test() {
-      let url = 'https://106.15.179.2:8080/staff/all'
-      this.axios.get(url).then((response) => {
-        console.log(response)
-        this.infoForm = response.data
-      })
-    },
     //用户登录分流
     logIn(form) {
       this.$refs['loginForm'].validate((valid) => {
@@ -282,57 +273,61 @@ export default {
     //住户登录
     customerLogin(account, password) {
       console.log(account, password)
-      //调用接口- 传入账号密码，返回是否正确、用户ID
-      let uid ='1'
-      let isRight = true
-
-      if(!isRight) {
-        ElMessage.error('账号或密码错误！')
-        return
-      }
-      ElMessage.success('登录成功！')
-      window.sessionStorage.setItem('uid', uid)
-      this.$router.push('/home')
+      //调用接口+ 传入账号密码，返回是否正确、用户ID
+      let url = 'zhunar/api/customeraccount/Login/'
+      url =  url + account + '/' +password
+      this.axios.post(url).then((response) => {
+        console.log(response.data)
+        let uid = response.data
+        if(uid===-1) {
+          ElMessage.error('用户名或密码错误！')
+        } else {
+          ElMessage.success('用户登录成功！')
+          window.sessionStorage.setItem('uid', uid)
+          this.$router.push('/home')
+        }
+      })
     },
     //酒店登录
     hotelLogin(account, password) {
-      console.log(account, password)
-      //调用接口- 传入账号密码，返回是否正确、是否通过审核、酒店ID
-      let uid ='2'
-      let isPassed = true
-      let isRight = true
-
-      if(!isRight) {
-        ElMessage.error('账号或密码错误！')
-        return
-      }
-      ElMessage.success({
-        message: '登录成功',
-        type: 'success'
-      });
-      window.sessionStorage.setItem('uid', uid)
-      if(isPassed === true)
-        this.$router.push('/hotel/home')
-      else
-        this.$router.push('/hotel/wait')
+      //调用接口+ 传入账号密码，返回是否正确、是否通过审核、酒店ID
+      let url = 'zhunar/api/hotelaccount/Login/'
+      url =  url + account + '/' +password
+      this.axios.get(url).then((response) => {
+        let rd = response.data
+        let isPassed = rd.isPassed
+        let hid = rd.hotel_id
+        if(rd.result === 'success')
+        {
+          ElMessage.success('酒店登录成功！')
+          window.sessionStorage.setItem('uid', hid)
+          if(isPassed === true)
+            this.$router.push('/hotel/home')
+          else
+            this.$router.push('/hotel/wait')
+        } else {
+          ElMessage.error('用户名或密码错误！')
+        }
+      })
     },
     //管理员登录
     adminLogin(account, password) {
-      console.log(account, password)
-      //调用接口- 传入账号密码，返回是否正确、管理员ID
-      let uid ='3'
-      let isRight = true
-
-      if(!isRight) {
-        ElMessage.error('账号或密码错误！')
-        return
+      //调用接口+ 传入账号密码，返回是否正确、管理员ID
+      let sForm = {
+        a_user_id: parseInt(account),
+        mypassword: password,
       }
-      ElMessage.success({
-        message: '登录成功',
-        type: 'success'
-      });
-      window.sessionStorage.setItem('uid', uid)
-      this.$router.push('/admin/evaluate')
+      console.log(sForm)
+      this.axios.post('zhunar/api/administeraccount/Login', sForm).then((response) => {
+        if(response.data===-1) {
+          ElMessage.error('管理员ID或密码错误！')
+        }
+        else {
+          window.sessionStorage.setItem('uid', account)
+          ElMessage.success('管理员登录成功！')
+          this.$router.push('/admin/evaluate')
+        }
+      })
     },
     //用户注册分流
     register(form) {
@@ -340,56 +335,52 @@ export default {
         if (valid) {
           switch (form.type) {
             case '住户':
-              this.customerRegister(form.newAccount, form.newPassword)
+              this.moreInfo = true
+              ElMessage.success('注册成功！请进一步完善您的信息！')
               break
             case '酒店':
               this.hotelRegister(form.newAccount, form.newPassword)
               this.cancelRegister()
               break
           }
-          ElMessage.success('注册成功！')
         }
         else {
           return false
         }
       });
     },
-    //住户注册
-    customerRegister(account, password) {
-      console.log(account, password)
-      //调用接口- 传入账号密码，无返回
-
-      this.moreInfo = true
-    },
     //住户完善信息
     submitInfo(form) {
       this.$refs['infoForm'].validate((valid) => {
         if (valid) {
-          console.log(this.registerForm.newAccount, this.registerForm.newPassword)
-          //调用接口- 传入账号密码，返回用户ID
-          let uid = '1'
-
-          console.log(form)
-          let userInfo = {
-            userName: this.registerForm.newAccount,
-            password: this.registerForm.newPassword,
-            name: form.name,
+          //调用接口+ 传入账号密码、所有信息，无返回
+          let sForm = {
+            //c_user_id: 1,
+            c_user_name: this.registerForm.newAccount,
+            mypassword: this.registerForm.newPassword,
+            myname: form.name,
             gender: form.gender,
+            iD_card_num: form.IDNumber,
             birthday: form.birthday,
-            IDNumber: form.IDNumber,
-            nickName: 'null',
-            phone: '-1',
+            phone_num: 'null',
+            nickname: 'null',
           }
-          console.log(userInfo)
-          //调用接口- 传入用户ID、所有信息，无返回
-
-          ElMessage.success('填写完成，已为您自动登录，3S后自动返回首页！')
-          setTimeout(() => {
-            this.moreInfo = false
-            this.cancelRegister()
-            window.sessionStorage.setItem('uid', uid)
-            this.$router.push('/home')
-          }, 3000);
+          console.log(sForm)
+          this.axios.post('zhunar/api/customeraccount/register', sForm).then((response) => {
+            console.log(response)
+            ElMessage.success('填写完成，已为您自动登录，3S后自动返回首页！')
+            //调用接口+ 传入账号密码，返回用户ID
+            let url = 'zhunar/api/customeraccount/Login/'
+            url =  url + sForm.c_user_name + '/' +sForm.mypassword
+            this.axios.post(url).then((res) => {
+              let uid = res.data
+              window.sessionStorage.setItem('uid', uid)
+            })
+            setTimeout(() => {
+              this.moreInfo = false
+              this.$router.push('/home')
+            }, 3000)
+          })
         } else {
           return false
         }
@@ -397,9 +388,19 @@ export default {
     },
     //酒店注册
     hotelRegister(account, password) {
-      console.log(account, password)
-      //调用接口- 传入账号密码，无返回
-
+      //调用接口+ 传入账号密码，无返回
+      let sForm = {
+        h_user_name: account,
+        mypassword: password,
+      }
+      console.log(sForm)
+      this.axios.post('zhunar/api/hotelaccount/add', sForm).then((response) => {
+        ElMessage.success('注册成功！3S后将自动登录！')
+        window.sessionStorage.setItem('uid', response.data.hotel_id)
+        setTimeout(() => {
+          this.$router.push('/hotel/wait')
+        }, 3000)
+      })
     },
     //开始注册，切换到注册窗口
     startRegister() {
@@ -410,32 +411,6 @@ export default {
     cancelRegister() {
       this.isRegistered = true
       this.$refs.registerForm.resetFields()
-    },
-    //测试用登录函数
-    testLogIn(character) {
-      //设置session中的id值为用户ID
-      switch (character) {
-        case 0:
-          this.$router.push('/home')
-          break
-        case 1:
-          window.sessionStorage.setItem('uid', '1')
-          this.$router.push('/home')
-          break
-        case 2:
-          window.sessionStorage.setItem('uid', '2')
-          this.$router.push('/hotel/home')
-          break
-        case 3:
-          window.sessionStorage.setItem('uid', '3')
-          this.$router.push('/admin/evaluate')
-          break
-        case 4:
-          window.sessionStorage.setItem('uid', '2')
-          this.$router.push('/hotel/wait')
-          break
-      }
-
     },
   }
 }

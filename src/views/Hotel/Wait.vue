@@ -127,6 +127,10 @@ export default {
     SideNav,
     BackNav,
   },
+  created() {
+    this.hid = parseInt(window.sessionStorage.getItem('uid'))
+    this.getStatus()
+  },
   data() {
     //卫生许可验证
     const validateSanitation = (rule, value, callback) => {
@@ -250,9 +254,9 @@ export default {
     }
     return {
       step: 0,
+      hid: 0,
       finished: false,
       permitForm: {
-        adminID: '-1',
         sanitation: '',
         fire: '',
         catering: '',
@@ -300,6 +304,35 @@ export default {
     }
   },
   methods: {
+    //调用接口- 获取当前审核进度（没有可测试样本）
+    getStatus() {
+      this.axios.get('zhunar/api/registration/id/'+this.hid).then((response) => {
+        let rd = response.data
+        if(rd!=='') {
+          if(rd.audit_status===1) {
+            this.$notify({
+              title: '消息',
+              message: '您的入驻申请已通过，自动为您跳转酒店后台！',
+              type: 'success'
+            });
+          this.$router.push('/hotel/home')
+          } else if(rd.reason===null) {
+            this.step = 3
+            this.$notify({
+              title: '消息',
+              message: '您的入驻申请正在审核，请耐心等待！',
+              type: 'warning'
+            });
+          } else {
+            this.step = 0
+            this.$notify.error({
+              title: '消息',
+              message: '您的入驻申请未通过审核，请重新填写！',
+            });
+          }
+        }
+      })
+    },
     //三个表单间的跳转
     changeForm(from, to) {
       switch (from) {
@@ -350,14 +383,54 @@ export default {
     },
     //表单提交
     submit() {
-      console.log('经营资质:', this.permitForm)
       //调用接口- 传入酒店ID、空管理员ID、许可证，无返回
-
-      console.log('酒店信息:', this.hotelForm)
+      let pf = this.permitForm
+      let sForm1 = {
+        a_user_id: 0,
+        hotel_id: this.hid,
+        sanitation_card: pf.sanitation,
+        fire_card: pf.fire,
+        catering_card: pf.catering,
+      }
+      this.axios.post('zhunar/api/registration/add', sForm1).then((response) => {
+        console.log(response)
+      })
       //调用接口- 传入酒店ID、酒店信息，无返回
-
-      console.log('房型信息:', this.roomForm)
+      let hf = this.hotelForm
+      let sForm2 = {
+        hotel_id: this.hid,
+        star_level: hf.star,
+        myname: hf.name,
+        details: hf.details,
+        phone: hf.phone,
+        province: hf.province,
+        city: hf.city,
+        region: hf.region,
+        location: hf.location,
+        score: -1,
+        lat: 0,
+        lng: 0,
+      }
+      this.axios.post('zhunar/api/hotel/add', sForm2).then((response) => {
+        console.log(response)
+      })
       //调用接口- 传入酒店ID、房型信息，无返回
+      let rf = this.roomForm
+      console.log(rf)
+      let sForm3 = {
+        hotel_id: this.hid,
+        room_type: rf.type,
+        area: rf.area,
+        windows: rf.facilities.indexOf('窗户')===-1?0:1,
+        wifi: rf.facilities.indexOf('WIFI')===-1?0:1,
+        smoke: rf.facilities.indexOf('禁烟')===-1?0:1,
+        basic_price: parseInt(rf.price),
+        room_quantity: parseInt(rf.number)
+      }
+      console.log(sForm1,sForm2,sForm3)
+      this.axios.post('zhunar/api/roomtype/add', sForm3).then((response) => {
+        console.log(response)
+      })
     },
   },
 }

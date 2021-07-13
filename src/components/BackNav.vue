@@ -22,6 +22,7 @@ export default {
   methods: {
     logOut() {
       this.$router.push('/login')
+      window.sessionStorage.setItem('uid', '0')
     },
     getTitle() {
       let character = this.$route.path

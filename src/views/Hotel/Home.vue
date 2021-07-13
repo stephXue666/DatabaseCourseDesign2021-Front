@@ -81,14 +81,14 @@ export default {
     //改
     this.axios.get('/zhunar'+'/api/turnover/yid/'+this.h_id).then((response)=>{
         this.yesterdayEarning=response.data.earning;
-        this.yesterdayOccupancyRate=response.data.occupancy_rate;
+        this.yesterdayOccupancyRate=response.data.occupancy_rate*100;
         console.log(response);
       })
 
     this.timer=setInterval(this.showTimes, 1000);
     //调用接口-显示今日所有房型剩余数量：传入（酒店编号）返回（房间类型数，房间类型：数量	/总数）
     //改
-    this.axios.get('/zhunar'+'/api/hotel/room?id='+this.h_id).then((remainResponse)=>{
+    this.axios.get('/zhunar/api/hotel/room?id='+this.h_id).then((remainResponse)=>{
         for(let item of remainResponse.data){
           this.tableData.push({
           roomType: item.roomtype,

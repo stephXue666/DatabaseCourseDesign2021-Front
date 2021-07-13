@@ -116,7 +116,7 @@
                   <el-descriptions title="其他信息" :column="2" border>
                     <el-descriptions-item>
                       <template #label>
-                        <i class="el-icon-user"></i>
+                        <i class="el-icon-position"></i>
                         酒店所在地
                       </template>
                       {{ hotelInfo.province }} /
@@ -125,14 +125,14 @@
                     </el-descriptions-item>
                     <el-descriptions-item>
                       <template #label>
-                        <i class="el-icon-male"></i>
+                        <i class="el-icon-map-location"></i>
                         详细地址
                       </template>
                       {{ hotelInfo.location }}
                     </el-descriptions-item>
                     <el-descriptions-item>
                       <template #label>
-                        <i class="el-icon-postcard"></i>
+                        <i class="el-icon-star-off"></i>
                         酒店星级
                       </template>
                       <el-rate v-model="hotelInfo.star" disabled text-color="#ff9900"
@@ -141,7 +141,7 @@
                     </el-descriptions-item>
                     <el-descriptions-item>
                       <template #label>
-                        <i class="el-icon-date"></i>
+                        <i class="el-icon-thumb"></i>
                         当前评分
                       </template>
                       <el-rate v-model="hotelInfo.score" disabled show-score text-color="#99A9BF" score-template="{value}"
@@ -155,28 +155,12 @@
                   <!--展示图片管理-->
                   <el-row>
                     <el-col :span="14" style="text-align: left">
-                      <el-popover placement="right" :width="240" :visible="isUpload" trigger="manual">
-                        <template #reference>
-                          <el-button type="primary" @click="isUpload=true">展示图管理</el-button><br><br><br>
-                        </template>
-                        <span class="el-upload__tip" style="color: darkgray">只能上传 jpg/png 文件，且不超过 500kb</span><br><br>
-                        <el-upload action="https://jsonplaceholder.typicode.com/posts/">
-                          <el-button size="small" type="primary" @click="uploadPic(0)">选择主要图片</el-button>
-                        </el-upload><br>
-                        <el-upload action="https://jsonplaceholder.typicode.com/posts/">
-                          <el-button size="small" type="primary" @click="uploadPic(1)">选择次要图片1</el-button>
-                        </el-upload><br>
-                        <el-upload action="https://jsonplaceholder.typicode.com/posts/">
-                          <el-button size="small" type="primary" @click="uploadPic(2)">选择次要图片2</el-button>
-                        </el-upload><br>
-                        <el-button type="success" @click="uploadPic(3)">全部上传</el-button>
-                        <el-button type="danger" @click="isUpload=false">取消</el-button>
-                      </el-popover><br><br><br>
+                      <span style="font-weight: 800;font-size: 16px">酒店展示图</span><br><br>
                       <el-image :src="pic[0]">
                         <template #error>
                           <span style="color:darkorange">
                             <i class="el-icon-circle-close"></i>
-                            请先上传主要图片
+                            请先提交主要图片
                           </span>
                         </template>
                       </el-image>
@@ -186,7 +170,7 @@
                         <template #error>
                           <span style="color:darkorange">
                             <i class="el-icon-circle-close"></i>
-                            请先上传次要图片1
+                            请先提交次要图片1
                           </span>
                         </template>
                       </el-image><br><br>
@@ -194,7 +178,7 @@
                         <template #error>
                           <span style="color:darkorange">
                             <i class="el-icon-circle-close"></i>
-                            请先上传次要图片2
+                            请先提交次要图片2
                           </span>
                         </template>
                       </el-image>
@@ -227,11 +211,19 @@
                         </template>
                         <label>{{ permitInfo.permit3 }}</label>
                       </el-descriptions-item>
+                      <el-descriptions-item>
+                        <template #label>
+                          <i class="el-icon-user"></i>
+                          审核管理员ID
+                        </template>
+                        <label>{{ permitInfo.adminID }}</label>
+                      </el-descriptions-item>
                     </el-descriptions>
                   </el-collapse-item></el-collapse>
               </el-col>
               </el-row>
             </el-card>
+            <!--修改密码对话框-->
             <el-dialog title="修改密码" v-model="isReset" width="30%" top="10%" @closed="cancelPass">
               <el-form :model="modifyForm" ref="modifyForm" label-width="80px"
                        style="margin-left: 7%; margin-right: 13%" :rules="rules">
@@ -304,12 +296,18 @@ export default {
     }
     //修改密码新密码验证
     const validateNew = (rule, value, callback) => {
+      const regNumber = /\d+/; //验证0-9的任意数字最少出现1次。
+      const regString = /[a-zA-Z]+/; //验证大小写26个字母任意字母最少出现1次。
       if (value === '') {
         callback(new Error('请输入新密码'));
-      } else if (value.length < 6) {
-        callback(new Error('密码应不少于6位'));
-      } else if (value.length > 15) {
-        callback(new Error('密码应不超过15位'));
+      } else if (value.length < 8) {
+        callback(new Error('密码应不少于8位'));
+      } else if (value.length > 20) {
+        callback(new Error('密码应不超过20位'));
+      } else if (!regNumber.test(value) || !regString.test(value)) {
+        callback(new Error('密码应同时包含数字与字母'));
+      } else if (value === this.modifyForm.old) {
+        callback(new Error('密码不应与旧密码相同'));
       } else {
         callback();
       }
@@ -333,7 +331,6 @@ export default {
       hotelInfo: {},
       permitInfo: {},
       pic: [],
-      ifUpload: [false, false, false],
       modifyForm: {
         old: '',
         new: '',
@@ -359,45 +356,49 @@ export default {
   created() {
     this.hid = window.sessionStorage.getItem('uid')
     this.getInfo()
-    this.uploadPic(3)
   },
   methods: {
     //获取酒店信息
     getInfo() {
-      //调用接口- 传入酒店ID，返回账户信息
-      this.accountInfo = {
-        hotelID: this.hid,
-        userName: 'abc12123',
-        password: '123456',
-      }
+      //调用接口+ 传入酒店ID，返回账户信息
+      this.axios.get("/zhunar/api/hotelaccount/id/"+this.hid).then((response) => {
+        this.accountInfo = {
+          hotelID: this.hid,
+          userName: response.data.h_user_name,
+          password: response.data.mypassword,
+        }
+        let hideLen = this.accountInfo.password.length
+        this.hidePassword = '***************'.substring(0,hideLen)
+      })
 
-      //调用接口- 传入酒店ID，返回酒店信息
-      this.hotelInfo = {
-        name: '北京红杉假日酒店',
-        star: 5,
-        score: 4.6,
-        phone: '12345678900',
-        details: '2011年开业 291间房',
-        location: '双清路89号A座',
-        province: '北京',
-        city: '北京市',
-        region: '海淀区',
-      }
+      //调用接口+ 传入酒店ID，返回酒店信息
+      this.axios.get("/zhunar/api/hotel/id/"+this.hid).then((response) => {
+        let rd = response.data[0]
+        this.hotelInfo = rd
+        this.hotelInfo.name = rd.myname
+        this.hotelInfo.star = rd.star_level
+      })
 
-      //调用接口- 传入酒店ID，返回资质信息
-      this.permitInfo = {
-        permit1: '0100S00500',
-        permit2: '0100S00501',
-        permit3: '0100S00502',
-      }
+      //调用接口+ 传入酒店ID，返回资质信息
+      this.axios.get("/zhunar/api/registration/id/"+this.hid).then((response) => {
+        let rd = response.data
+        this.permitInfo = {
+          adminID: rd.a_user_id,
+          permit1: rd.sanitation_card,
+          permit2: rd.fire_card,
+          permit3: rd.catering_card,
+        }
+      })
 
-      //调用接口- 传入酒店ID，返回图片url的列表
-      let url = ['','','www.baidu.com']
-      for(let i=0;i<3;i++)
-        this.ifUpload[i] = (url[i] !== '')
+      //调用接口+ 传入酒店ID，返回图片url的列表
+      this.axios.get('/zhunar/api/hotelpicture/gethotelpicture/'+this.hid).then((response) => {
+        let url = response.data
+        for(let i=0;i<3;i++) {
+          if(url[i] !== '')
+            this.pic[i] = url[i]
+        }
+      })
 
-      let hideLen = this.accountInfo.password.length
-      this.hidePassword = '***************'.substring(0,hideLen)
     },
     //修改密码显隐状态
     changeHide() {
@@ -414,13 +415,19 @@ export default {
     submitPass(form) {
       this.$refs['modifyForm'].validate((valid) => {
         if (valid) {
-          console.log(form.new, this.hid)
-          //调用接口- 传入用户ID、新密码，无返回
-
-          ElMessage.success('密码修改成功')
-          this.accountInfo.password = this.modifyForm.new
-          this.isReset = false
-          this.refs.modifyForm.resetFields()
+          let sForm = {
+            h_user_name: this.hotelInfo.name,
+            hotel_id: parseInt(this.hid),
+            mypassword: form.new,
+          }
+          //调用接口+ 传入用户ID、新密码，无返回
+          this.axios.put("/zhunar/api/hotelaccount/update", sForm).then((response) => {
+            console.log(response)
+            ElMessage.success('密码修改成功')
+            this.accountInfo.password = this.modifyForm.new
+            this.isReset = false
+            this.$refs.modifyForm.resetFields()
+          })
         }
         else {
           return false
@@ -447,7 +454,14 @@ export default {
           this.hotelInfo.phone = this.infoModify.newPhone
           this.hotelInfo.details = this.infoModify.newDetails
           console.log(this.hid, this.hotelInfo)
-          //调用接口- 传入酒店ID、所有信息，无返回
+          let sForm = this.hotelInfo
+          sForm.myname = this.hotelInfo.name
+          sForm.star_level = this.hotelInfo.star
+          console.log(sForm)
+          //调用接口+ 传入酒店ID、所有信息，无返回
+          this.axios.put("/zhunar/api/hotel/update", sForm).then((response) => {
+            console.log(response)
+          })
 
           ElMessage.success('信息修改成功')
           this.isModify = false
@@ -463,28 +477,6 @@ export default {
       this.$refs.infoModify.resetFields()
       this.isModify = false
     },
-    //上传图片
-    uploadPic(num) {
-      let hid = 106
-      let url = 'http://121.196.223.20/' + hid
-      switch (num) {
-        case 0:
-        case 1:
-        case 2:
-          this.ifUpload[num] = true
-          break
-        case 3:
-          for(let i=0;i<3;i++) {
-            if(this.ifUpload[i]) {
-              this.pic[i] = url + '/酒店/' + i + '.jpg'
-              console.log(this.hid, '酒店', i)
-              //调用接口- 传入酒店ID、‘酒店’、是第几张图，无返回
-            }
-          }
-          this.isUpload = false
-          break
-      }
-    }
   },
 }
 </script>
