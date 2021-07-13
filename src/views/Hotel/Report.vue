@@ -7,7 +7,8 @@
       <el-aside width="200px" style="background-color: #545c64">
         <side-nav/>
       </el-aside>
-      <el-main>
+      <el-main v-loading="loadingHotelData">
+        <el-scrollbar>
         <el-card class="box-card">
           <el-tabs v-model="tabActiveName" @tab-click="tabClicked">
             <el-tab-pane 
@@ -23,6 +24,7 @@
             </el-tab-pane>
           </el-tabs>
         </el-card>
+        </el-scrollbar>
       </el-main>
     </el-container>
   </el-container>
@@ -81,64 +83,51 @@ export default {
     }
   },
 
-  created(){
-    function initData(rawData){ // 生成假数据，在调用接口后去掉！！
-      let arr = [4,6,9,11];
-      for(let year = 2019; year<=2020; year++){
-        for(let month = 1; month<=12; month++){
-          for(let day = 1; day<=31; day++){
-            let oneData = {
-              date: "",
-              turnover: 0,
-              occRate: 0.01,
-            }
-            oneData.date = year.toString() + "-" + month.toString() + "-" + day.toString();
-            oneData.turnover = Math.random()*5000;
-            oneData.occRate = Math.random();
-            rawData.push(oneData);
-            if(day==28 && month==2)break;
-            if(day==30 && arr.indexOf(month)!=-1)break;
+  mounted(){
+    //this.hid = window.sessionStorage.getItem('hid');
+    this.hid = "100";
+    // 调用接口- 流水信息
+    this.axios.get("/zhunar/api/turnover/id/" + this.hid).then(
+      (response)=>{
+        let date, dateYear, yearDataFound;
+        this.rawData = response.data
+        for(let oneData of this.rawData) // 得到每年的营业额，即初始化tabData
+        {
+          date = new Date(oneData.day_time);
+
+          // 初始化tabData
+          dateYear = date.getFullYear(); // 得到原始数据中的年份信息
+          yearDataFound = this.tabData.find(item=>item.year===dateYear); // 在tabData中找此年份的信息
+          if(yearDataFound==undefined){ // 没找到年份
+            this.tabData.push({ // 加入此年份并添加流水金额
+              year: dateYear,
+              tabName: dateYear.toString(),
+              turnover: oneData.earning
+            });
+          }
+          else{
+            yearDataFound.turnover += oneData.earning; // 找到年份则增加相应流水金额
           }
         }
-      }
-    }
-    initData(this.rawData);
-
-    // 调用接口- 流水信息
-
-    let date, dateYear, yearDataFound;
-    for(let oneData of this.rawData) // 得到每年的营业额，即初始化tabData
-    {
-      date = new Date(oneData.date);
-
-      // 初始化tabData
-      dateYear = date.getFullYear(); // 得到原始数据中的年份信息
-      yearDataFound = this.tabData.find(item=>item.year===dateYear); // 在tabData中找此年份的信息
-      if(yearDataFound==undefined){ // 没找到年份
-        this.tabData.push({ // 加入此年份并添加流水金额。
-          year: dateYear,
-          tabName: dateYear.toString(),
-          turnover: oneData.turnover
+        this.tabData.sort((x,y)=>{ // 按year降序排序，使时间最近的年份显示在前面
+          return y.year - x.year;
         });
-      }
-      else{
-        yearDataFound.turnover += oneData.turnover; // 找到年份则增加相应流水金额
-      }
-    }
-    this.tabData.sort((x,y)=>{ // 按year降序排序，使时间最近的年份显示在前面
-      return y.year - x.year;
-    });
-    this.tabActiveName = this.tabData[0].tabName;
-  },
+        this.tabActiveName = this.tabData[0].tabName;
+        
+        this.generateChartData(this.tabData[0].year);
+        setTimeout(() => { 
+          this.drawCalendarChart(this.tabData[0].year);
+          this.drawLineChart(this.tabData[0].year);
+        },50);
 
-  mounted(){
-    this.generateChartData(this.tabData[0].year);
-    this.drawCalendarChart(this.tabData[0].year);
-    this.drawLineChart(this.tabData[0].year);
+        this.loadingHotelData = false;
+      });
   },
 
   data() {
     return {
+      loadingHotelData: true,
+      hid: 0,
       tabActiveName: "",
       rawData: [], // 假数据 {date, turnover, accRate}
       tabData: [], // 以年为单位的营业额统计数据 {year, tableName, turnover}
@@ -160,22 +149,24 @@ export default {
     },
 
     generateChartData(year){
+      this.chartData = [];
       let oneDate, oneYear;
       for(let oneData of this.rawData){
-        oneDate = new Date(oneData.date);
+        oneDate = new Date(oneData.day_time);
         oneYear = oneDate.getFullYear(); // 得到原始数据中的年份信息
 
         if(year == oneYear){
           this.chartData.push({ // 加入日历图数据
             date: oneDate,
-            occRate: oneData.occRate,
-            turnover: oneData.turnover
+            occRate: oneData.occupancy_rate,
+            turnover: oneData.earning
           });
         }
       }
     },
 
     drawCalendarChart(year){ // 日历图
+      console.log('calendarChart-'+year.toString());
       let myChart = echarts.init(document.getElementById('calendarChart-'+year.toString()));
       let option = {
         title: { // 图表标题
@@ -300,8 +291,8 @@ export default {
           type: 'slider',
           show: true,
           realTime: true,
-          start: 20,
-          end: 80,
+          start: 0,
+          end: 100,
           xAxisIndex: [0],
           bottom: "5%"
         },
