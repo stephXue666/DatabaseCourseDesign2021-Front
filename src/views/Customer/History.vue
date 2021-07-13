@@ -16,7 +16,7 @@
     <el-col :span="16">
     <div v-for="(item) in tableData" :key="item.hotelID">
     <el-row>
-    <div class="timeLabel"><el-tag type="info" size="mini">{{item.time}}</el-tag></div>
+    <div class="timeLabel"><el-tag size="medium">{{item.time.slice(0,10)+' '+item.time.slice(11,18)}}</el-tag></div>
     </el-row>
     <el-card shadow="hover" :body-style="{ padding: '0px' }" style="margin-bottom: 5px;">
       <el-row>
@@ -29,7 +29,7 @@
       @click="handleJumpToHotelPage(item.hotelID)"></el-image>
       </template>
       </el-col>
-      <el-col :span="10">
+      <el-col :span="11">
       <el-form label-position="left" label-width="60px" style="margin-left:6px;">
         <el-form-item label="名称" style="margin-bottom:1px;text-align:left;"> <span class="hotelDescription">{{item.hotelName}}</span></el-form-item>
         <el-form-item label="地址" style="margin-bottom:1px;text-align:left;"> <span class="hotelDescription">{{item.address}}</span></el-form-item>
@@ -44,11 +44,11 @@
         </el-form-item>
       </el-form>
       </el-col>
-      <el-col :span="4">
+      <el-col :span="3">
         <template v-slot>
          <el-button icon="el-icon-delete" size="medium" type="info" 
          @click="handleDeleteHistory(item.hotelID,item.time)" 
-         style="margin-top: 45px;margin-left: 20px;">删除</el-button>
+         style="margin-top: 45px;margin-left: 20px;margin-right: 10px;">删除</el-button>
         </template>
       </el-col>
       </el-row>

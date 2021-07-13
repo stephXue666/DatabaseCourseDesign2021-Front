@@ -27,7 +27,7 @@
       @click="handleJumpToHotelPage(item.hotelID)"></el-image>
       </template>
       </el-col>
-      <el-col :span="10">
+      <el-col :span="11">
       <el-form label-position="left" label-width="60px" style="margin-left:6px;">
         <el-form-item label="名称" style="margin-bottom:1px;text-align:left;"> <span class="hotelDescription">{{item.hotelName}}</span></el-form-item>
         <el-form-item label="地址" style="margin-bottom:1px;text-align:left;"> <span class="hotelDescription">{{item.address}}</span></el-form-item>
@@ -42,9 +42,9 @@
         </el-form-item>
       </el-form>
       </el-col>
-      <el-col :span="4">
+      <el-col :span="3">
         <template v-slot>
-         <el-button icon="el-icon-star-off" size="medium" type="primary" @click="handleDeleteCollection(item.hotelID)" style="margin-top: 45px;margin-left: 20px;">取消收藏</el-button>
+         <el-button icon="el-icon-star-off" size="small" type="primary" @click="handleDeleteCollection(item.hotelID)" style="margin-top: 45px;margin-left: 20px;margin-right: 10px;">取消收藏</el-button>
         </template>
       </el-col>
       </el-row>
@@ -73,7 +73,7 @@ export default {
       this.axios.get('/zhunar/api/favorite/cid/'+this.c_id).then((favoriteResponse)=>{
       console.log(favoriteResponse);
       for(let item of favoriteResponse.data){
-          this.tableData.push({
+        this.tableData.push({
           hotelID: item.hotel_id,
           time: item.day_time,
           hotelName: item.myname,
