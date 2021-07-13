@@ -163,10 +163,12 @@ export default {
           });
         }
       }
+      this.chartData.sort((x,y)=>{ // 按year降序排序，使时间最近的年份显示在前面
+        return x.date - y.date;
+      });
     },
 
     drawCalendarChart(year){ // 日历图
-      console.log('calendarChart-'+year.toString());
       let myChart = echarts.init(document.getElementById('calendarChart-'+year.toString()));
       let option = {
         title: { // 图表标题
@@ -235,7 +237,7 @@ export default {
       myChart.setOption(option,true); 
     },
 
-    drawLineChart(year){ // 折线图
+    drawLineChart(year){ // 折线图;
       let myChart = echarts.init(document.getElementById('lineChart-'+year.toString()));
       
       let option = {
