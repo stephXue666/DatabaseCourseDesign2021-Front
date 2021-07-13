@@ -44,7 +44,7 @@
     <div class="messageBoard">
     <div v-for="(item) in messageData" :key="item.day_time">
 						<div class="timeLabel">
-							<el-tag type="info" size="mini">{{item.day_time}}</el-tag>
+							<el-tag type="info" size="mini">{{item.day_time.slice(0,10)+' '+item.day_time.slice(11,18)}}</el-tag>
 						</div>
 						<div v-if="item.speaker==1">
 							<el-row>
