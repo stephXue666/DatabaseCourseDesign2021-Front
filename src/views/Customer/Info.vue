@@ -1,10 +1,15 @@
 <template>
   <el-container>
+    <div style="
+        background-image: url(//s2.hdslb.com/bfs/static/blive/blfe-dynamic-web/static/img/background.bc725153.png);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size:100% 100%;">
     <el-header style="padding: 0">
       <top-nav/>
     </el-header>
     <el-main>
-      <el-card style="margin-left: 20%; margin-right: 20%; height:540px">
+      <el-card style="margin:2% 20%; height:540px">
         <el-descriptions title="账号信息" :column="2" border>
           <template #extra>
             <el-button type="primary" @click="modifyPass">修改密码</el-button>
@@ -130,8 +135,14 @@
         </el-form>
       </el-dialog>
     </el-main>
-    <el-footer>Copyright ©2021 住哪儿-酒店预定平台</el-footer>
+    </div>
+    <el-footer style="background-color: #f6f9fa; height:100%">
+    <p style="margin:0px; padding:30px 0px 40px 0px">
+      Copyright ©2021 住哪儿-酒店预定平台
+    </p>
+  </el-footer>
   </el-container>
+
 </template>
 
 <script>
