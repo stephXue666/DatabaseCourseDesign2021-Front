@@ -1,17 +1,22 @@
 <template>
+<div style="
+        background-image: url(//s2.hdslb.com/bfs/static/blive/blfe-dynamic-web/static/img/background.bc725153.png);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size:100% 100%;">
   <el-container>
     <el-header style="padding: 0">
       <top-nav />
     </el-header>
     <el-main>
-      <el-container style="height: 312px; margin-left: 9%">
-        <el-card class="box-card" style="width: 33%; height: 97%">
+      <el-container style="height: 312px; margin-left: 9%; margin-top:30px">
+        <el-card class="box-card" style="borfed-radius:10px; width: 33%; height: 97%; background: rgba(256, 256, 256, 0.85);">
           <el-form ref="form" :model="form" :rules="rules">
-            <el-divider><h2>酒店搜索</h2></el-divider>
-            <el-form-item style="text-align: left">
+            <h2 style="margin: 0px">酒店搜索</h2>
+            <div style="text-align: left; margin:23px 5px 20px;">
               <el-radio v-model="form.keyWord" label="目的地">目的地</el-radio>
               <el-radio v-model="form.keyWord" label="酒店名">酒店名</el-radio>
-            </el-form-item>
+            </div>
             <el-form-item prop="search">
               <el-cascader
                 v-model="place"
@@ -36,18 +41,18 @@
             >
           </el-form>
         </el-card>
-        <el-carousel style="height: 100%; width: 53.5%; margin-left: 3%">
+        <el-carousel style="height: 100%; width: 53.5%; margin-left: 3%;">
           <el-carousel-item v-for="item in imagelist.length" :key="item">
             <el-image
-              style="height: 100%; width: 100%"
+              style="height: 100%; width: 100%; border-radius: 5px"
               :src="imagelist[item - 1]"
             ></el-image>
           </el-carousel-item>
         </el-carousel>
       </el-container>
-      <p style="text-align: left; font-size: 25px; margin-left: 9%">
+      <h2 style="text-align: left; font-size: 30px; margin-left: 9%">
         酒店推荐
-      </p>
+      </h2>
       <el-container
         direction="vertical"
         style="margin-left: 9%; margin-right: 9%"
@@ -250,7 +255,13 @@
         </el-container>
       </el-container>
     </el-main>
+    <div>
+      <p style="padding:10px 0px 30px;">
+      Copyright ©2021 住哪儿-酒店预定平台
+    </p>
+    </div>
   </el-container>
+</div>
 </template>
 
 <script>
@@ -314,7 +325,7 @@ export default {
         ElMessage.error("亲,请输入目的地哦");
       } else {
         this.$router.push({
-          path: "./Result",
+          path: "./result",
           query: {
             province: this.place[0],
             city: this.place[1],
@@ -328,7 +339,7 @@ export default {
     {
       console.log(Province,City)
       this.$router.push({
-          path: "./Result",
+          path: "./result",
           query: {
             province: Province,
             city:City,
