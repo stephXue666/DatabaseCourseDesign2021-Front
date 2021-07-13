@@ -10,7 +10,7 @@
           <el-divider content-position="left">
             <el-breadcrumb separator="/" style="margin-top: 10px; margin-bottom: 10px">
               <el-breadcrumb-item :to="{ path: '/home' }">酒店首页</el-breadcrumb-item>
-              <el-breadcrumb-item>{{ hotelInfo.province }}酒店</el-breadcrumb-item>
+              <el-breadcrumb-item>{{ hotelInfo.province }}</el-breadcrumb-item>
               <el-breadcrumb-item :to="{ path: '/result', query: { province:hotelInfo.province, city: hotelInfo.city }}">
                 {{ hotelInfo.city }}
               </el-breadcrumb-item>
@@ -19,28 +19,36 @@
           </el-divider>
           <!--标题、星级、地址、收藏按钮-->
           <el-row>
-            <el-col :span="12">
-              <el-row>
-                <el-col :span="8" style="font-size: 24px; font-weight: 900; text-align: left">
+            <el-col :span="12" style="text-align: left">
+              <el-space>
+                <div style="font-size: 24px; font-weight: 900; text-align: left;">
                   {{ hotelInfo.name }}
-                </el-col>
-                <el-col :span="6" style="text-align: left">
+                </div>
+                <div style="text-align: left">
                   <el-rate v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
-                </el-col>
-              </el-row>
-              <p style="font-size: 16px; font-weight: 500; text-align: left">{{ hotelInfo.location }}</p>
+                </div>
+              </el-space>
             </el-col>
             <el-col :span="4" :offset="8">
-              <el-button @click="addFavorite" icon="el-icon-star-on" round size="small">收藏</el-button>
+              <el-button v-if="isFav" type="info" @click="changeFavorite" icon="el-icon-star-on" round size="small">取消收藏</el-button>
+              <el-button v-else type="warning" @click="changeFavorite" icon="el-icon-star-on" round size="small">收藏</el-button>
             </el-col>
           </el-row>
           <!--酒店图片、简要介绍-->
-          <el-row>
+          <el-row  style="margin-top:15px">
             <el-col :span="12">
-              <el-image :src="hotelInfo.url" style="height: 270px"></el-image>
+              <!-- 图片走马灯 -->
+              <el-card body-style="padding:0px" shadow="hover">
+              <el-carousel trigger="click" height="360px">
+                <el-carousel-item v-for="item of imgList"  :key="item">
+                  <el-image :src="item" style="width:100%;height:100%"></el-image>
+                </el-carousel-item>
+              </el-carousel>
+              </el-card>
             </el-col>
             <el-col :span="11" style="margin-left: 16px">
-              <el-card shadow="hover" style="border-radius: 8px; text-align: left" class="box-card">
+              <el-card shadow="hover" style="height:360px; text-align: left" class="box-card">
+                <!--酒店评分-->
                 <span style="font-weight: 900 ;font-size: 30px; color: #67C23A">
                   {{ hotelInfo.score }}
                 </span>
@@ -48,8 +56,68 @@
                 <span style="font-size: 16px; font-weight: 500; margin-left:10px; text-align: left; color: #9f9f9f">
                   共有{{eAll.length}}条点评
                 </span>
-                <p style="font-size: 15px; font-weight: 500; text-align: left">{{hotelInfo.details}}</p>
-                <h3>这里是放地图展示的位置</h3>
+                <!--酒店地址-->
+                <div style="margin-top:10px; font-size: 16px; font-weight: 500; text-align: left">
+                  <i class="el-icon-location"></i>
+                  <span style="font-weight: 600; margin-left: 2px;"> 详细地址:</span>
+                  {{hotelInfo.city}} &nbsp; {{hotelInfo.region}} &nbsp; {{ hotelInfo.location }}</div>
+                <!--酒店联系电话-->
+                <div style="margin-top:10px; font-size: 16px; font-weight: 500; text-align: left">
+                  <i class="el-icon-phone"></i>
+                  <span style="font-weight: 600; margin-left: 2px;"> 联系电话:</span>
+                  {{ hotelInfo.phone }}</div>
+                <!-- 酒店介绍信息 -->
+                <div style="margin-top:10px; font-size: 15px; font-weight: 500; text-align: left">
+                  <i class="el-icon-info"></i>
+                  <span style="font-size: 16px; font-weight: 600; margin-left: 2px;"> 酒店介绍:</span>
+                  {{hotelInfo.briefInfo}}
+                  <el-button @click="showDetail" style="margin-right:10px; float:right; padding:0px" type="text">查看更多</el-button>
+                </div>
+                  <!-- 点击查看详情后的dialog -->
+                  <el-dialog body-style="padding:10px 20px;" :title="hotelInfo.myname" style="width:50%" v-model="detailDialogVisible">
+                    <el-image :src="imgList[0]" style="width:100%"></el-image>
+                    <p>{{ hotelInfo.details }}</p>
+                  </el-dialog>
+                <!-- 小地图 -->
+                <el-tooltip class="item" effect="light" content="点击查看大图" placement="bottom">
+                  <div @click="showLargeMap" id="mapSmall" style="height:110px; width:100%"></div>
+                </el-tooltip>
+                <!-- 大地图抽屉 -->
+                <el-drawer
+                  size="45%"
+                  title="位置信息"
+                  v-model="mapDrawerVisible"
+                  direction="rtl">
+                  <!-- 大地图 -->
+                  <div id="mapLarge" style="height:40%; width:100%"></div>
+                  <!-- 信息切换tab -->
+                  <el-tabs v-model="activeMapTab" @tab-click="handleMapTabClick" style="margin:10px 20px 0px 20px">
+                    <el-tab-pane label="公交站" name="bus">
+                    </el-tab-pane>
+                    <el-tab-pane label="地铁站" name="metro">
+                    </el-tab-pane>
+                    <el-tab-pane label="景点" name="scenery">
+                    </el-tab-pane>
+                    <el-tab-pane label="商场" name="market">
+                    </el-tab-pane>
+                  </el-tabs>
+                  <!-- 信息展示列表 -->
+                  <el-table
+                    height="375"
+                    v-loading="loadingLocalSearchData"
+                    :show-header="isShowMapTableHeader"
+                    style="width:98.5%; margin:0px 10px 10px 10px"
+                    :data="localData"
+                    stripe
+                  >
+                    <el-table-column>
+                      <template #default="scope">
+                        <div style="font-weight:600">{{ scope.row.name }}</div>
+                        <div>{{ scope.row.detail }}</div>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </el-drawer>
               </el-card>
             </el-col>
           </el-row>
@@ -84,7 +152,7 @@
                 <el-table-column label="房间配置">
                   <template #default="scope">
                     <span class="room-details">房间面积：{{ scope.row.area }}㎡</span><br>
-                    <span class="room-details">{{ scope.row.window }}窗户</span><br>
+                    <span class="room-details">{{ scope.row.windows }}窗户</span><br>
                     <span class="room-details">{{ scope.row.wifi }}无线网络</span><br>
                     <span class="room-details">{{ scope.row.smoke }}吸烟</span><br><br>
                   </template>
@@ -215,7 +283,11 @@
           <el-button type="primary" @click="goUp(1)" size="mini">更多信息</el-button>
         </el-affix>
       </el-col></el-row>
-      <el-footer>Copyright ©2021 住哪儿-酒店预定平台</el-footer>
+      <el-footer style="background-color: #f6f9fa; height:100%">
+        <p style="margin:0px; padding:30px 0px 40px 0px">
+          Copyright ©2021 住哪儿-酒店预定平台
+        </p>
+      </el-footer>
     </el-container>
   </el-scrollbar>
 </template>
@@ -224,27 +296,41 @@
 <script>
 import TopNav from "../components/TopNav";
 import {ElMessage} from "element-plus";
+import BMap from "BMap";
+
 export default {
   components: {
     TopNav,
   },
   data() {
     return {
+      loadingLocalSearchData: false,
+      isShowMapTableHeader: false,
+      activeMapTab: "bus",
+      localData: [],
+      localMap: null,
+      point: null,
+      mapDrawerVisible: false,
+      detailDialogVisible: false,
+      mapSmall: null,
+      mapLarge: null,
+      imgList: [],
       uid: '',
       hid: '',
       hotelInfo: {},    //酒店详细
-      activePart: 'estimation',   //选择的标签页：房间预定/用户评论
+      isFav: false,
+      activePart: 'room',   //选择的标签页：房间预定/用户评论
       //==房间预定数据==
       roomLoading: false,
-      roomInfo: {},   //房型详情
-      dateRange: [ '2021-07-06', '2021-07-08' ],    //预定日期
+      roomInfo: [],   //房型详情
+      dateRange: [],    //预定日期
       //预定表单
       newOrder: false,    //控制预定窗口
       orderForm: {
         type: '',
         price: '',
         number: 1,
-        days: '',
+        days: 3,
         volume: '',
         name: '',
         phone: '',
@@ -262,33 +348,68 @@ export default {
   created() {
     this.uid = window.sessionStorage.getItem('uid')
     this.hid = this.$route.query.id
-    this.addHistory()
+    const date1 = new Date(),
+          time1 = date1.toLocaleDateString('chinese',{year:'numeric', month:'2-digit', day:'2-digit'})
+              .replaceAll('/', '-')
+    const date2 = new Date(date1)
+    date2.setDate(date1.getDate()+3)
+    const time2 = date2.toLocaleDateString('chinese',{year:'numeric', month:'2-digit', day:'2-digit'})
+        .replaceAll('/', '-')
+    this.dateRange = [time1, time2]
+    if(this.uid !== '0')
+      this.addHistory()
     this.getInfo()
     this.getRoom()
-    this.getTimeSlot()
     this.getEstimation()
+    window.scrollTo(0,0); // 窗口返回顶部
   },
   methods: {
     //获取酒店详情
     getInfo() {
-      //调用接口- 提供酒店ID，返回酒店信息
-      this.hotelInfo = {
-        name: '上海宝格丽酒店', star: 5, score: '4.7', phone: '021-36067788',
-        details: '上海宝格丽酒店坐落于拥有丰厚历史人文背景的苏河湾——河南北路，它将惬意的自然景观、当代的设计风格以及经典的历史建筑精妙平衡。',
-        province: '上海', city: '上海市', region: '静安区', location: '静安区山西北路108弄',
-        url: require('../assets/hotel.png'),
-      }
+      //调用接口+ 提供酒店ID，返回酒店信息
+      this.axios.get("/zhunar/api/hotel/id/"+this.hid).then((response) => {
+        let rd = response.data[0]
+        this.hotelInfo = rd
+        this.hotelInfo.name = rd.myname
+        this.hotelInfo.star = rd.star_level
+        this.hotelInfo.lng = rd.lng
+        this.hotelInfo.lat = rd.lat
+        this.hotelInfo.briefInfo = rd.details.substr(0, 125)+'…'
+        this.showSmallMap();
+      })
+
+      //调用接口+ 提供酒店ID、用户ID，返回是否收藏
+      this.axios.get("/zhunar/api/favorite/judge/"+this.uid+'/'+this.hid).then((response) => {
+        this.isFav = response.data
+      })
+
+      //调用接口+ 提供酒店ID、图片类型，返回酒店图片列表
+      this.axios.get("/zhunar/api/hotelpicture/getpicture?id=" + this.hid + "&type=酒店").then((response)=>{
+        this.imgList = response.data
+      })
     },
     //进入页面时添加浏览记录
     addHistory() {
-      console.log('酒店ID:', this.hid, ' 用户ID:', this.uid)
-      //调用接口- 传入酒店id、用户id，无返回
+      //console.log('酒店ID:', this.hid, ' 用户ID:', this.uid)
+      //调用接口+ 传入酒店id、用户id，无返回
+      let sForm = {
+        c_user_id: parseInt(this.uid),
+        hotel_id: parseInt(this.hid),
+      }
+      this.axios.post("/zhunar/api/track/add",sForm).then((response) => {
+        console.log(response)
+      })
     },
     //添加到收藏夹
-    addFavorite() {
-      console.log(this.hid, this.uid)
-      //调用接口- 传入酒店ID、用户ID，无返回
-
+    changeFavorite() {
+      if(this.uid === '0') {
+        ElMessage.warning('请先登录！')
+        return
+      }
+      //调用接口+ 传入酒店ID、用户ID，无返回
+      this.axios.put("/zhunar/api/favorite/update/"+this.uid+'/'+this.hid).then((response) => {
+        this.isFav = response.data
+      })
     },
     //切换标签后的页面调整
     refresh(tab) {
@@ -306,7 +427,6 @@ export default {
       else
         document.documentElement.scrollTop = 558
     },
-
     //设置不可选时间段
     getDisable(time) {
       const curDate = (new Date()).getTime()
@@ -319,25 +439,22 @@ export default {
     },
     //获取房间详情
     getRoom() {
-      //console.log(this.hid)
       this.roomLoading = true
-      //调用接口- 传入酒店ID，返回所有房间信息
-      this.roomInfo = [
-        {
-          type: '高级城市景观房', area: 52, window: '有', wifi: '有', smoke: '不可',
-          pic: 'http://121.196.223.20:24/登录.png'
-        },
-        {
-          type: '豪华外滩景观房', area: 61, window: '有', wifi: '有', smoke: '不可',
-          pic: 'http://121.196.223.20:24/登录.png'
-        },
-        {
-          type: '高级城市景观套房', area: 81, window: '有', wifi: '有', smoke: '可',
-          pic: 'http://121.196.223.20:24/登录.png'
-        },
-      ]
-
-      this.roomLoading = false
+      //调用接口+ 传入酒店ID，返回所有房间信息
+      this.axios.get("/zhunar/api/roomtype/id/"+this.hid).then((response) => {
+        let rd =response.data
+        for(let i=0; i<rd.length; i++) {
+          rd[i].type = rd[i].room_type
+          rd[i].price = rd[i].today_price
+          rd[i].remain = rd[i].remaining
+          rd[i].pic = rd[i].url[0]
+          rd[i].smoke = rd[i].smoke===0 ? '可':'不可'
+          rd[i].windows = rd[i].windows===0 ? '无':'有'
+          rd[i].wifi = rd[i].wifi===0 ? '无':'有'
+        }
+        this.roomInfo = rd
+        this.roomLoading = false
+      })
     },
     //获取选定时间段的房间价格与剩余量
     getTimeSlot() {
@@ -348,18 +465,27 @@ export default {
       this.orderForm.days = (end - start)/(24*3600*1000)
       //console.log(this.hid, this.dateRange[0], this.dateRange[1])
       //调用接口- 传入酒店ID，两个时间点，返回所有房间剩余情况
-      this.roomInfo[0].price = 4431;
-      this.roomInfo[0].remain = 10
-      this.roomInfo[1].price = 5830;
-      this.roomInfo[1].remain = 6
-      this.roomInfo[2].price = 6646;
-      this.roomInfo[2].remain = 2
-
-      this.roomLoading = false
+      let sForm = {
+        c_user_id: -1,
+        room_quantity: -1,
+        order_money: -1,
+        room_type: 'null',
+        phone_num: 'null',
+        customer_name: 'null',
+        order_status: 'null',
+        hotel_id: this.hid,
+        day_time: this.dateRange[0]+'T00:00:00',
+        start_date: this.dateRange[0]+'T00:00:00',
+        end_date: this.dateRange[1]+'T00:00:00',
+      }
+      console.log(sForm)
+      this.axios.get("/zhunar/api/roomtimeslot/date", sForm).then((response) => {
+        console.log(response)
+        this.roomLoading = false
+      })
     },
     //预定房间
     addOrder(row) {
-      console.log(this.uid)
       if(this.uid === '0') {
         ElMessage.warning('请先登录！')
         return
@@ -377,10 +503,12 @@ export default {
     },
     //设置信息为当前用户的
     setInfo() {
-      //console.log(this.uid)
-      //调用接口- 传入用户ID，返回该用户的姓名和电话
-      this.orderForm.name = '张三'
-      this.orderForm.phone = '12345678900'
+      //调用接口+ 传入用户ID，返回该用户的姓名和电话
+      this.axios.get("/zhunar/api/customeraccount/customer/"+this.uid).then((response) => {
+        let rd = response.data
+        this.orderForm.name = rd.myname
+        this.orderForm.phone = rd.phone_num
+      })
     },
     //提交订单
     submitOrder() {
@@ -388,44 +516,59 @@ export default {
         ElMessage.warning('请将入住信息填写完整！')
         return
       }
-      //console.log(this.hid, this.uid, this.orderForm)
-      //调用接口- 传入用户ID、酒店ID、所有信息，无返回
-
-      this.newOrder = false
+      console.log(this.orderForm)
+      //调用接口+ 传入用户ID、酒店ID、所有信息，无返回
+      let sForm = {
+        'hotel_id': parseInt(this.hid),
+        c_user_id: parseInt(this.uid),
+        room_type: this.orderForm.type,
+        room_quantity: this.orderForm.number,
+        order_money: this.orderForm.volume,
+        day_time: this.orderForm.start+'T00:00:00',
+        start_date: this.orderForm.start+'T00:00:00',
+        end_date: this.orderForm.end+'T00:00:00',
+        phone_num: this.orderForm.phone,
+        customer_name: this.orderForm.name,
+        order_status: this.orderForm.status,
+      }
+      console.log(sForm)
+      this.axios.post("/zhunar/api/customerorder/add", sForm).then((response) => {
+        console.log(response)
+        this.newOrder = false
+      })
     },
     //取消预定，清空表单
     cancelOrder() {
       this.orderForm.name = ''
       this.orderForm.phone = ''
     },
-
     //获取全部评论
     getEstimation() {
-      //console.log(this.hid)
-      //调用接口- 传入酒店ID、返回所有评价
-      const all = [
-        {nickName: '张三三', time: '2021-07-06', star: 5,
-          content: '非常棒👍，服务无语伦比的体贴，食品也超赞，只是可惜我们只是住一晚，而晚餐的中餐已经订满，据说这可是全球唯一有中餐馆的宝格丽酒店，为我们服务的小姐是个香港，满口标准的粤语是我们倍感亲切，一起都是那么舒适和圆满，赞赞赞……'},
-        {nickName: '李四四', time: '2021-07-07', star: 4,
-          content: '酒店服务特别好，主动性问候，求婚大作战圆满成功，老婆很开心，酒店前台还配合着演了一次戏，晚上半夜还叫阿姨来打扫了房间，实在有点乱。早餐也不错，上海最贵的酒店，价格么嘿嘿'},
-        {nickName: '王五五', time: '2021-07-08', star: 3,
-          content: '第一次入住这家酒店，整体体验很不错👍 酒店服务也很用心干净卫生床也特别好睡 早餐也好吃酒店特别用心服务特周到订的房间能望到外面夜景'},
-        {nickName: '雄哥NB', time: '2021-07-09', star: 2,
-          content: '风景太棒啦！很喜欢酒店的装修，低调奢华'},
-        {nickName: '昕哥NB', time: '2021-07-10', star: 1,
-          content: '第二次来了，国际品牌酒店，设施方面肯定不用说，早餐体验非常棒，因为一点小差错，服务员特别送来一小盒巧克力表示歉意，那巧克力绝对够惊喜'},
-      ]
-
-      this.eAll = all
-      this.estimation = all
-      for(let i =0;i<all.length;i++) {
-        if (all[i].star >= 4)
-          this.eHigh.push(all[i])
-        else if(all[i].star === 3)
-          this.eMiddle.push(all[i])
-        if (all[i].star <= 2)
-          this.eLow.push(all[i])
-      }
+      //调用接口+ 传入酒店ID、返回所有评价
+      this.axios.get("/zhunar/api/estimation/id/"+this.hid).then((response) => {
+        let rd = response.data
+        for(let i=0;i<rd.length;i++) {
+          rd[i].time = rd[i].day_time.replace('T', ' ')
+          rd[i].star = rd[i].star_level
+          rd[i].content = rd[i].details
+          rd[i].nickName = rd[i].c_user_id
+          //调用接口+ 传入用户ID、返回用户昵称
+          this.axios.get("/zhunar/api/customeraccount/customer/"+rd[i].nickName).then((res) => {
+            rd[i].nickName = res.data.nickname
+          })
+        }
+        const all = rd
+        this.eAll = all
+        this.estimation = all
+        for(let i =0;i<all.length;i++) {
+          if (all[i].star >= 4)
+            this.eHigh.push(all[i])
+          else if(all[i].star === 3)
+            this.eMiddle.push(all[i])
+          if (all[i].star <= 2)
+            this.eLow.push(all[i])
+        }
+      })
     },
     //筛选评论类型
     filterEstimation(type) {
@@ -461,15 +604,85 @@ export default {
           return new Date(val2.replace(/-/,'/')) - new Date(val1.replace(/-/,'/'));
         }
       }
+    },
+    //显示小地图
+    showSmallMap() {
+      this.point = new BMap.Point(this.hotelInfo.lng, this.hotelInfo.lat);
+      this.mapSmall = new BMap.Map("mapSmall",{ enableMapClick: false }); // 创建Map实例
+      this.mapSmall.centerAndZoom(this.point, 14); // 初始化地图,设置中心点坐标和地图级别
+      this.mapSmall.addOverlay(new BMap.Marker(this.point));
+      this.mapSmall.disableDragging();
+      this.mapSmall.setDefaultCursor('pointer');
+    },
+    //显示地图抽屉
+    showLargeMap() {
+      this.mapDrawerVisible = true;
+      setTimeout(()=>{ // 设置延迟函数后以下代码才能执行
+        this.loadingLocalSearchData = true;
+        this.mapLarge = new BMap.Map("mapLarge"); // 创建Map实例
+        //this.mapLarge.addOverlay(new BMap.Marker(this.point));
+        this.mapLarge.centerAndZoom(this.point, 15); // 初始化地图,设置中心点坐标和地图级别
+        this.mapLarge.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
+        // 设置地图标签样式
+        let labelStyle = {
+          position: "absolute",
+          transform: "translateX(-50%)",
+          backgroundColor: "#287dfa",
+          borderRadius: "4px",
+          padding: "4px 8px",
+          fontSize: "10px",
+          fontWeight: "700",
+          boxSizing: "border-box",
+          display: "inline-block",
+          border: "1px solid transparent",
+          filter: "drop-shadow(0 2px 6px rgba(0,0,0,.2))",
+          color: "#fff",
+          whiteSpace: "nowrap",
+        };
+        //添加酒店的label
+        let label = new BMap.Label(this.hotelInfo.myname, {
+          position: this.point,
+          offset: new BMap.Size(0, -10),
+          enableMassClear: false
+        });
+        label.setStyle(labelStyle);
+        this.mapLarge.addOverlay(label); // 地图添加label
+
+        this.localMap = new BMap.LocalSearch(this.mapLarge, 
+        {
+          renderOptions: {map: this.mapLarge, autoViewport: false},
+          onSearchComplete: (result)=>{ // 返回搜索结果的回调函数
+            this.localData = []; // 清空数据
+            for(let item of result.Hr){ // 依次加入新数据
+              this.localData.push({
+                name: item.title,
+                detail: item.address
+              })
+            }
+            this.loadingLocalSearchData = false;
+          }
+        });
+        this.localMap.searchNearby("公交站", this.point, 1000); // 首页是搜索公交站
+      },50);
+    },
+    //显示详细信息dialog
+    showDetail() {
+      this.detailDialogVisible = true;
+    },
+    //响应大地图抽屉中的tab点击
+    handleMapTabClick(tab) {
+      this.loadingLocalSearchData = true;
+      this.mapLarge.clearOverlays(); // 清除地图覆盖物
+      this.localMap.searchNearby(tab.props.label, this.point, 1000); // 搜索
+      this.localMap.clearResults(); // 清空搜索结果
     }
   },
 }
 </script>
 
 
-<style scoped>
+<style scope>
 .room-details{
   color: darkgray;
 }
-
 </style>
