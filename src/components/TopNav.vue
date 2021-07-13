@@ -44,7 +44,7 @@
     <div class="messageBoard">
     <div v-for="(item) in messageData" :key="item.day_time">
 						<div class="timeLabel">
-							<el-tag type="info" size="mini">{{item.day_time}}</el-tag>
+							<el-tag type="info" size="mini">{{item.day_time.slice(0,10)+' '+item.day_time.slice(11,19)}}</el-tag>
 						</div>
 						<div v-if="item.speaker==1">
 							<el-row>
@@ -118,11 +118,10 @@ export default {
       let status = window.sessionStorage.getItem('uid')
       switch (status) {
         case '0':
-          break
-        //若用户id不为0，则设定登录状态为true
+          break;
+        //若用户id不为0且不为空，则设定登录状态为true
         default:
-          this.loginStatus = true
-          break
+          this.loginStatus = true;
       }
     },
     openDialog(){
