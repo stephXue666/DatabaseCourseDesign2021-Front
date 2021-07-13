@@ -1,5 +1,11 @@
 <template>
   <el-container>
+    <div style="
+        background-image: url(//s2.hdslb.com/bfs/static/blive/blfe-dynamic-web/static/img/background.bc725153.png);
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        height: 100%;
+        background-size:100% 100%;">
     <el-header style="padding: 0">
       <TopNav />
     </el-header>
@@ -234,6 +240,12 @@
         </el-drawer>
       </el-card>
     </el-main>
+    </div>
+    <el-footer style="background-color: #f6f9fa; height:100%">
+    <p style="margin:0px; padding:30px 0px 40px 0px">
+      Copyright ©2021 住哪儿-酒店预定平台
+    </p>
+  </el-footer>
   </el-container>
 </template>
 
