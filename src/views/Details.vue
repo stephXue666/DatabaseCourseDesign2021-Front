@@ -25,7 +25,7 @@
                   {{ hotelInfo.name }}
                 </div>
                 <div style="text-align: left">
-                  <el-rate v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
+                  <el-rate disabled-void-color="#ffffff" v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
                 </div>
               </el-space>
             </el-col>
@@ -427,7 +427,6 @@ export default {
       else
         document.documentElement.scrollTop = 558
     },
-
     //设置不可选时间段
     getDisable(time) {
       const curDate = (new Date()).getTime()
@@ -464,27 +463,24 @@ export default {
       let start = Date.parse(this.dateRange[0])
       let end = Date.parse(this.dateRange[1])
       this.orderForm.days = (end - start)/(24*3600*1000)
-      //调用接口+ 传入酒店ID，两个时间点，返回所有房间剩余情况
+      //console.log(this.hid, this.dateRange[0], this.dateRange[1])
+      //调用接口- 传入酒店ID，两个时间点，返回所有房间剩余情况
       let sForm = {
         c_user_id: -1,
         room_quantity: -1,
         order_money: -1,
-        room_type: null,
-        phone_num: null,
-        customer_name: null,
-        order_status: null,
-        hotel_id: parseInt(this.hid),
+        room_type: 'null',
+        phone_num: 'null',
+        customer_name: 'null',
+        order_status: 'null',
+        hotel_id: this.hid,
         day_time: this.dateRange[0]+'T00:00:00',
         start_date: this.dateRange[0]+'T00:00:00',
         end_date: this.dateRange[1]+'T00:00:00',
       }
       console.log(sForm)
-      this.axios.post("/zhunar/api/roomtimeslot/date", sForm).then((response) => {
-        let rd = response.data
-        for(let i=0;i<rd.length;i++) {
-          this.roomInfo[i].price = rd[i].current_price
-          this.roomInfo[i].remain = rd[i].remain
-        }
+      this.axios.get("/zhunar/api/roomtimeslot/date", sForm).then((response) => {
+        console.log(response)
         this.roomLoading = false
       })
     },
@@ -546,7 +542,6 @@ export default {
       this.orderForm.name = ''
       this.orderForm.phone = ''
     },
-
     //获取全部评论
     getEstimation() {
       //调用接口+ 传入酒店ID、返回所有评价
@@ -686,7 +681,7 @@ export default {
 </script>
 
 
-<style scoped>
+<style scope>
 .room-details{
   color: darkgray;
 }
