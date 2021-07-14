@@ -19,17 +19,17 @@
           </el-divider>
           <!--标题、星级、地址、收藏按钮-->
           <el-row>
-            <el-col :span="12" style="text-align: left">
+            <el-col :span="20" style="text-align: left">
               <el-space>
                 <div style="font-size: 24px; font-weight: 900; text-align: left;">
                   {{ hotelInfo.name }}
                 </div>
                 <div style="text-align: left">
-                  <el-rate v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
+                  <el-rate disabled-void-color="#ffffff" v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
                 </div>
               </el-space>
             </el-col>
-            <el-col :span="4" :offset="8">
+            <el-col :span="4">
               <el-button v-if="isFav" type="info" @click="changeFavorite" icon="el-icon-star-on" round size="small">取消收藏</el-button>
               <el-button v-else type="warning" @click="changeFavorite" icon="el-icon-star-on" round size="small">收藏</el-button>
             </el-col>
@@ -38,10 +38,10 @@
           <el-row  style="margin-top:15px">
             <el-col :span="12">
               <!-- 图片走马灯 -->
-              <el-card body-style="padding:0px" shadow="hover">
+              <el-card v-loading="imgLoading" body-style="padding:0px" shadow="hover">
               <el-carousel trigger="click" height="360px">
-                <el-carousel-item v-for="item of imgList"  :key="item">
-                  <el-image :src="item" style="width:100%;height:100%"></el-image>
+                <el-carousel-item v-for="index in imgIter"  :key="index" initial-index="0">
+                  <el-image :src="imgList[index]" style="width:100%;height:100%"></el-image>
                 </el-carousel-item>
               </el-carousel>
               </el-card>
@@ -304,6 +304,8 @@ export default {
   },
   data() {
     return {
+      imgLoading: true,
+      imgIter: [0,1,2],
       loadingLocalSearchData: false,
       isShowMapTableHeader: false,
       activeMapTab: "bus",
@@ -383,10 +385,18 @@ export default {
         this.isFav = response.data
       })
 
+      let list = { // 参数列表
+        "hotel_id": parseInt(this.hid),
+        "picture_type": "酒店",
+        "url": null,
+        "sequence": -1
+      }
       //调用接口+ 提供酒店ID、图片类型，返回酒店图片列表
-      this.axios.get("/zhunar/api/hotelpicture/getpicture?id=" + this.hid + "&type=酒店").then((response)=>{
-        this.imgList = response.data
-      })
+      this.axios.post("/zhunar/api/hotelpicture/picture", list).then((response)=>{
+        this.imgList = response.data;
+        this.imgIter = Array.from(new Array(this.imgList.length).keys());
+        this.imgLoading = false;
+      });
     },
     //进入页面时添加浏览记录
     addHistory() {
