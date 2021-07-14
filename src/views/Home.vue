@@ -10,7 +10,7 @@
     </el-header>
     <el-main>
       <el-container style="height: 312px; margin-left: 9%; margin-top:30px">
-        <el-card class="box-card" style="borfed-radius:10px; width: 33%; height: 97%; background: rgba(256, 256, 256, 0.85);">
+        <el-card class="box-card" style="borfed-radius:10px; width: 33%; height: 96%; background: rgba(256, 256, 256, 0.85);">
           <el-form ref="form" :model="form" :rules="rules">
             <h2 style="margin: 0px">酒店搜索</h2>
             <div style="text-align: left; margin:23px 5px 20px;">
@@ -41,7 +41,7 @@
             >
           </el-form>
         </el-card>
-        <el-carousel style="height: 100%; width: 53.5%; margin-left: 3%;">
+        <el-carousel style="height: 100%; width: 53.7%; margin-left: 3%;">
           <el-carousel-item v-for="item in imagelist.length" :key="item">
             <el-image
               style="height: 100%; width: 100%; border-radius: 5px"
@@ -50,7 +50,7 @@
           </el-carousel-item>
         </el-carousel>
       </el-container>
-      <h2 style="text-align: left; font-size: 30px; margin-left: 9%">
+      <h2 style="text-align: left; font-size: 30px; margin-left: 9% ;margin-top:17px">
         酒店推荐
       </h2>
       <el-container
