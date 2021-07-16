@@ -1,4 +1,10 @@
 <template>
+  <div style="
+        background-image: url(//s2.hdslb.com/bfs/static/blive/blfe-dynamic-web/static/img/background.bc725153.png);
+        background-repeat: no-repeat;
+        height: 100%;
+        background-attachment: fixed;
+        background-size:100% 100%;">
   <el-container>
     <el-header style="padding: 0">
       <TopNav />
@@ -7,9 +13,7 @@
       <el-card
         v-loading="a"
         class="box-card"
-        style="margin-left: 10%; margin-right: 10%"
-      >
-        <!--这里写代码-->
+        style="margin-left: 10%; margin-right: 10%">
         <order-detail ref="orderdetail"></order-detail>
 
         <el-tabs v-model="activeName" @tab-click="showTable">
@@ -117,7 +121,12 @@
             </template>
           </el-table-column>
         </el-table>
-        <el-dialog title="订单评价" v-model="showEva" width="500px">
+        <el-dialog
+          title="订单评价"
+          v-model="showEva"
+          width="500px"
+          :before-close="evacontain"
+        >
           <p
             style="text-align: left"
             v-if="!!this.orderTemp[this.index].eday_time"
@@ -252,10 +261,12 @@
       </el-card>
     </el-main>
   </el-container>
+  </div>
 </template>
 
 <script>
 import TopNav from "../../components/TopNav";
+import BaseUrl from "../../config"
 export default {
   components: {
     TopNav,
@@ -264,13 +275,17 @@ export default {
   data() {
     return {
       a: false,
-      c_user_id: 10000,
+      c_user_id:"",
       time1: "",
       time2: "",
       // 说明绑定的是历史订单还是其他的什么
       activeName: "first",
       dataRange: null,
       index: -1,
+      temp:{
+        star_level:0,
+        details:""
+      },
       dialogVisible: false,
       showEva: false,
       order: [
@@ -312,7 +327,7 @@ export default {
         .then(() => {
           this.axios
             .delete(
-              "/zhunar/api/customerorder/delete/" +
+                BaseUrl.ZHUNAR+"/api/customerorder/delete/" +
                 this.orderTemp[newindex].order_id
             )
             .then((response) => {
@@ -343,7 +358,7 @@ export default {
         .then(() => {
           this.axios
             .put(
-              "/zhunar/api/customerorder/cancel/" +
+                BaseUrl.ZHUNAR+"/api/customerorder/cancel/" +
                 this.orderTemp[newindex].order_id
             )
             .then(() => {
@@ -376,9 +391,10 @@ export default {
     },
     getData(status) {
       this.a = true;
+      this.c_user_id=window.sessionStorage.getItem("uid")
       this.axios
         .get(
-          "/zhunar/api/customerorder/customer/" + this.c_user_id + "/" + status
+            BaseUrl.ZHUNAR+"/api/customerorder/customer/" + this.c_user_id + "/" + status
         )
         .then((response) => {
           this.order = response.data;
@@ -409,8 +425,7 @@ export default {
       } else if (this.activeName == "third") {
         this.orderTemp.length = 0;
         this.getData("已退订");
-      } else if(this.activeName=="second")
-      {
+      } else if (this.activeName == "second") {
         this.orderTemp.length = 0;
         this.getData("已完成");
       }
@@ -418,21 +433,23 @@ export default {
     //展示评论信息
     showEvaDialog(newindex) {
       this.index = newindex;
-      if (!!this.orderTemp[this.index].eday_time && true) {
-        console.log("233");
+      if (!!this.orderTemp[this.index].eday_time == true) {
+        this.temp.star_level=this.orderTemp[this.index].star_level
+        this.temp.details=this.orderTemp[this.index].details
       } else {
-        this.orderTemp[this.index].star_level = 0;
-        this.orderTemp[this.index].details = "";
+       this.temp.star_level= this.orderTemp[this.index].star_level = 0;
+        this.temp.details=this.orderTemp[this.index].details = "";
+        
       }
       this.showEva = true;
     },
-      // 这里把评价信息传入数据库存储
+    // 这里把评价信息传入数据库存储
     onSubmit() {
       this.showEva = false;
-      console.log(this.orderTemp[this.index])
+      console.log(this.orderTemp[this.index]);
       this.axios
         .post(
-          "/zhunar/api/estimation/add/" +
+            BaseUrl.ZHUNAR+"/api/estimation/add/" +
             this.orderTemp[this.index].order_id +
             "/" +
             this.orderTemp[this.index].details +
@@ -440,7 +457,7 @@ export default {
             this.orderTemp[this.index].star_level
         )
         .then((response) => {
-          this.orderTemp[this.index].eday_time=response.data
+          this.orderTemp[this.index].eday_time = response.data;
           this.$message({
             type: "success",
             message: "提交成功!",
@@ -449,9 +466,30 @@ export default {
     },
     reserve() {
       this.$router.push({
-        path: "../Details",
-        query: { hotelID: this.orderTemp[this.index].hotelID },
+        path: "/details",
+        query: { id: this.orderTemp[this.index].hotel_id },
       });
+    },
+    evacontain() {
+      console.log(this.temp.star_level,this.orderTemp[this.index].star_level)
+      if(this.temp.star_level!=this.orderTemp[this.index].star_level||this.temp.details!=this.orderTemp[this.index].details)
+      {
+      this.$confirm("您还有未保存的更改,是否退出编辑?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.showEva=false
+         this.orderTemp[this.index].star_level=this.temp.star_level
+         this.orderTemp[this.index].details=this.temp.details
+        })
+      }
+      else
+      {
+      
+      this.showEva=false
+      }
     },
   },
 };

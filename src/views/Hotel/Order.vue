@@ -334,7 +334,7 @@
                 <i class="el-icon-timer"></i>
                 付款时间
               </template>
-              {{ detailedInfo.day_time }}
+              {{ detailedInfo.day_time.replace('T',' ') }}
             </el-descriptions-item>
             <el-descriptions-item>
               <template #label>
@@ -361,7 +361,7 @@
 <script>
 import SideNav from "../../components/SideNav"
 import BackNav from "../../components/BackNav"
-
+import BaseUrl from "../../config"
 export default {
 	components: {
     SideNav,
@@ -372,9 +372,9 @@ export default {
     let orderEnterDate, orderExitDate;
 
     // 调用接口- 获得所有酒店订单信息
-    //this.hid = window.sessionStorage.getItem('hid');
-    this.hid = "100";
-    this.axios.get("/zhunar/api/customerOrder/hotel/" + this.hid).then(
+    this.hid = window.sessionStorage.getItem('uid');
+    //this.hid = "100";
+    this.axios.get(BaseUrl.ZHUNAR+"/api/customerOrder/hotel/" + this.hid).then(
       (response) =>{
         this.orderData = response.data;
         for(let order of this.orderData){

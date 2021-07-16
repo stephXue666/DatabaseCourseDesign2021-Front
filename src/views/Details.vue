@@ -25,7 +25,8 @@
                   {{ hotelInfo.name }}
                 </div>
                 <div style="text-align: left">
-                  <el-rate disabled-void-color="#ffffff" v-model="hotelInfo.star" disabled text-color="#ff9900" style="margin-top: 10px"/>
+                  <el-rate v-model="hotelInfo.star" disabled-void-color="#ffffff"
+                           disabled text-color="#ff9900" style="margin-top: 10px"/>
                 </div>
               </el-space>
             </el-col>
@@ -241,7 +242,7 @@
                 </span>
                 <span style="font-weight: 600 ;font-size: 18px; color: #67C23A; margin-right: 20px">分</span>
                 <el-tag type="success" effect="dark">
-                  好评率 {{ eHigh.length/eAll.length*100 }}%
+                  好评率 {{ Math.floor(eHigh.length/eAll.length*100*100)/100 }}%
                 </el-tag><br>
                 <!--筛选评论类型-->
                 <el-radio-group style="margin-left: 20px; margin-top: 10px; margin-bottom: 5px" v-model="estimationType" @change="filterEstimation">
@@ -297,6 +298,7 @@
 import TopNav from "../components/TopNav";
 import {ElMessage} from "element-plus";
 import BMap from "BMap";
+import BaseUrl from "../config";
 
 export default {
   components: {
@@ -369,7 +371,7 @@ export default {
     //获取酒店详情
     getInfo() {
       //调用接口+ 提供酒店ID，返回酒店信息
-      this.axios.get("/zhunar/api/hotel/id/"+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/hotel/id/"+this.hid).then((response) => {
         let rd = response.data[0]
         this.hotelInfo = rd
         this.hotelInfo.name = rd.myname
@@ -381,7 +383,7 @@ export default {
       })
 
       //调用接口+ 提供酒店ID、用户ID，返回是否收藏
-      this.axios.get("/zhunar/api/favorite/judge/"+this.uid+'/'+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/favorite/judge/"+this.uid+'/'+this.hid).then((response) => {
         this.isFav = response.data
       })
 
@@ -392,7 +394,7 @@ export default {
         "sequence": -1
       }
       //调用接口+ 提供酒店ID、图片类型，返回酒店图片列表
-      this.axios.post("/zhunar/api/hotelpicture/picture", list).then((response)=>{
+      this.axios.post(BaseUrl.ZHUNAR+"/api/hotelpicture/picture", list).then((response)=>{
         this.imgList = response.data;
         this.imgIter = Array.from(new Array(this.imgList.length).keys());
         this.imgLoading = false;
@@ -406,7 +408,7 @@ export default {
         c_user_id: parseInt(this.uid),
         hotel_id: parseInt(this.hid),
       }
-      this.axios.post("/zhunar/api/track/add",sForm).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+"/api/track/add",sForm).then((response) => {
         console.log(response)
       })
     },
@@ -417,7 +419,7 @@ export default {
         return
       }
       //调用接口+ 传入酒店ID、用户ID，无返回
-      this.axios.put("/zhunar/api/favorite/update/"+this.uid+'/'+this.hid).then((response) => {
+      this.axios.put(BaseUrl.ZHUNAR+"/api/favorite/update/"+this.uid+'/'+this.hid).then((response) => {
         this.isFav = response.data
       })
     },
@@ -452,7 +454,7 @@ export default {
     getRoom() {
       this.roomLoading = true
       //调用接口+ 传入酒店ID，返回所有房间信息
-      this.axios.get("/zhunar/api/roomtype/id/"+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/roomtype/id/"+this.hid).then((response) => {
         let rd =response.data
         for(let i=0; i<rd.length; i++) {
           rd[i].type = rd[i].room_type
@@ -489,7 +491,7 @@ export default {
         end_date: this.dateRange[1]+'T00:00:00',
       }
       console.log(sForm)
-      this.axios.post("/zhunar/api/roomtimeslot/date", sForm).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+"/api/roomtimeslot/date", sForm).then((response) => {
         let rd = response.data
         for(let i=0;i<rd.length;i++) {
           this.roomInfo[i].price = rd[i].current_price
@@ -518,7 +520,7 @@ export default {
     //设置信息为当前用户的
     setInfo() {
       //调用接口+ 传入用户ID，返回该用户的姓名和电话
-      this.axios.get("/zhunar/api/customeraccount/customer/"+this.uid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/customeraccount/customer/"+this.uid).then((response) => {
         let rd = response.data
         this.orderForm.name = rd.myname
         this.orderForm.phone = rd.phone_num
@@ -546,8 +548,9 @@ export default {
         order_status: this.orderForm.status,
       }
       console.log(sForm)
-      this.axios.post("/zhunar/api/customerorder/add", sForm).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+"/api/customerorder/add", sForm).then((response) => {
         console.log(response)
+        ElMessage.success('预订成功！')
         this.newOrder = false
       })
     },
@@ -560,7 +563,7 @@ export default {
     //获取全部评论
     getEstimation() {
       //调用接口+ 传入酒店ID、返回所有评价
-      this.axios.get("/zhunar/api/estimation/id/"+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/estimation/id/"+this.hid).then((response) => {
         let rd = response.data
         for(let i=0;i<rd.length;i++) {
           rd[i].time = rd[i].day_time.replace('T', ' ')
@@ -568,7 +571,7 @@ export default {
           rd[i].content = rd[i].details
           rd[i].nickName = rd[i].c_user_id
           //调用接口+ 传入用户ID、返回用户昵称
-          this.axios.get("/zhunar/api/customeraccount/customer/"+rd[i].nickName).then((res) => {
+          this.axios.get(BaseUrl.ZHUNAR+"/api/customeraccount/customer/"+rd[i].nickName).then((res) => {
             rd[i].nickName = res.data.nickname
           })
         }

@@ -146,6 +146,7 @@
 </template>
 
 <script>
+import BaseUrl from "../../config";
 import TopNav from "../../components/TopNav";
 import { ElMessage } from 'element-plus'
 export default {
@@ -244,7 +245,7 @@ export default {
     //获取个人信息
     getInfo() {
       //调用接口+ 传入用户ID，返回个人信息
-      this.axios.get('zhunar/api/customeraccount/customer/'+this.uid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+'/api/customeraccount/customer/'+this.uid).then((response) => {
         let rd = response.data
         if(rd.nickname==='null')  rd.nickname = ''
         if(rd.phone_num==='null')  rd.phone_num = ''
@@ -278,7 +279,7 @@ export default {
       this.$refs['modifyForm'].validate((valid) => {
         if (valid) {
           //调用接口+ 传入用户ID、新密码，无返回
-          let url = 'zhunar/api/customeraccount/updatepassword/'
+          let url = BaseUrl.ZHUNAR+'/api/customeraccount/updatepassword/'
           url += this.uid
           url += '?password=' + form.new
           this.axios.put(url).then((response) => {
@@ -321,7 +322,7 @@ export default {
             c_user_name: i.userName,
           }
           //调用接口+ 传入用户ID、所有信息，无返回
-          this.axios.put('zhunar/api/customeraccount/update', sForm).then((response) => {
+          this.axios.put(BaseUrl.ZHUNAR+'/api/customeraccount/update', sForm).then((response) => {
             console.log(response)
             ElMessage.success('信息修改成功')
             i.phone = this.infoModify.newPhone

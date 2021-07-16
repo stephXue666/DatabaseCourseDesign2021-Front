@@ -310,8 +310,12 @@
               <!--地址!-->
               <div class="detailedInfo">
                 {{ hotelData[i].location }}
-              </div> </el-container
-            ><!--#DCDFE6#606266!-->
+              </div>
+              <!--距离!-->
+              <div class="detailedInfo">
+                距{{ searchPointName }}约{{ hotelData[i].distance.toFixed(2) }}千米
+              </div>
+            </el-container>
 
             <div
               style="width=0; heigth:100%; border-left:1px solid #DCDFE6"
@@ -319,7 +323,7 @@
 
             <el-container direction="vertical" style="margin-top: 5px">
               <!--评分!-->
-              <span id="score">{{ hotelData[i].score }}</span>
+              <span id="score">{{ hotelData[i].score.toFixed(1) }}</span>
               <!--评论数!-->
               <span id="comments" style="margin-top: 3px"
                 >共{{ hotelData[i].esitimationCount }}条评价</span
@@ -381,7 +385,7 @@
 <script>
 import TopNav from "../components/TopNav";
 import BMap from "BMap";
-
+import BaseUrl from "../config";
 export default {
   components: {
     TopNav,
@@ -414,7 +418,8 @@ export default {
           time.getTime() < Date.now() - 8.64e7 || time.getTime() > dateRegion
         );
       },
-      map: null,
+
+      map: null, // 地图
 
       searchCity: [], // 选择城市，（省、市）
       searchHotelDate: "", // 选择入住日期（装饰）
@@ -439,7 +444,7 @@ export default {
       cityOptions: [
         {
           value: "北京市",
-          label: "北京市",
+          label: "北京",
           children: [
             {
               value: "北京市",
@@ -449,7 +454,7 @@ export default {
         },
         {
           value: "上海市",
-          label: "上海市",
+          label: "上海",
           children: [
             {
               value: "上海市",
@@ -459,7 +464,7 @@ export default {
         },
         {
           value: "广东省",
-          label: "广东省",
+          label: "广东",
           children: [
             {
               value: "广州市",
@@ -473,13 +478,33 @@ export default {
         },
         {
           value: "江苏省",
-          label: "江苏省",
+          label: "江苏",
           children: [
             {
               value: "南京市",
               label: "南京市",
             },
           ],
+        },
+        {
+          value:"海南省",
+          label:"海南",
+          children:[
+            {
+              value:"三亚市",
+              label:"三亚市"
+            }
+          ]
+        },
+        {
+          value:"重庆市",
+          label:"重庆",
+          children:[
+            {
+              value:"重庆市",
+              label:"重庆市"
+            }
+          ]
         },
       ],
     };
@@ -489,11 +514,11 @@ export default {
     // 自动联想
     querySearchAsync(queryString, cb){
       let autoCompleteData = [];
-      if(this.searchInput === ""){
+      if(this.searchInput === "" || this.searchInput === ""){
         cb(autoCompleteData);
       }
       else if(this.searchRadio === 'hotel'){ // 酒店自动联想
-        let url = "/zhunar/api/hotel/get/";
+        let url = BaseUrl.ZHUNAR+"/api/hotel/get/";
         url += this.searchCity[0] + "?";
         url += "city=" + this.searchCity[1] + "&";
         url += "star=" + this.hotelStars + "&";
@@ -516,21 +541,17 @@ export default {
       else { // 地点自动联想
 
         // 调用地点查询接口
-        this.axios
-          .get(
-              "/baidu/place/v2/suggestion?query=" +
-                queryString +
-                "&region=" +
-                this.searchCity[1] +
-                "&city_limit=true&output=json&ak=psW2eLUlrAlTegyWFIbAGOZgOP2mTYMW"
-            )
-            .then((response) => {
-              let result = response.data.result;
-              for(let i in result){
-                autoCompleteData.push({value: result[i].name});
-              }
-              cb(autoCompleteData); // 回调函数
-            });
+        let autoCompleteMapSearch = new BMap.LocalSearch(this.searchCity[1],{
+          onSearchComplete: (response) => { // 完成搜索后的回调函数
+            let result = response.Hr;
+            for(let i in result){
+              autoCompleteData.push({value: result[i].title});
+            }
+            cb(autoCompleteData); // 自动补全的回调函数
+          }
+        });
+
+        autoCompleteMapSearch.search(queryString);
       }
     },
 
@@ -541,31 +562,33 @@ export default {
       this.$router.push({ path: '/result', query: { 
         province:this.searchCity[0], city:this.searchCity[1], searchRadio:this.searchRadio, searchInput:this.searchInput }})
       if (this.searchRadio == "region" && !!this.searchInput) { // 如果输入地点，则找到此地点经纬度
-        this.axios
-        .get( // 调用地点查询接口
-            "/baidu/place/v2/suggestion?query=" +
-              this.searchInput +
-              "&region=" +
-              this.searchCity[1] +
-              "&city_limit=true&output=json&ak=psW2eLUlrAlTegyWFIbAGOZgOP2mTYMW"
-          )
-          .then((response) => { // 得到此地点经纬度
-            this.searchPoint = response.data.result[0].location;
+
+        let regionKeywordSearch = new BMap.LocalSearch(this.searchCity[1],{
+          onSearchComplete: (response) => { // 搜索完成的回调函数
+            if(response.Hr.length == 0){ // 没有搜索到此地点
+              this.$alert('没有搜索结果', '提示', {
+                confirmButtonText: '确定',
+              });
+              this.loadingHotelData = false;
+            }
+            else{
+              this.searchPoint = response.Hr[0].point;
+              this.searchPointName = response.Hr[0].title;
+              this.searchHotel();
+            }
+          }
+        });
+        regionKeywordSearch.search(this.searchInput);
+
+      } else { // 如果输入酒店名或输入为空，则找城市中心点经纬度
+        let regionKeywordSearch = new BMap.LocalSearch(this.searchCity[1],{
+          onSearchComplete: (response) => { // 搜索完成的回调函数
+            this.searchPoint = response.Hr[0].point;
+            this.searchPointName = response.Hr[0].title + "中心";
             this.searchHotel();
-          });
-      } else { // 如果输入酒店名，则找城市中心点经纬度
-        this.axios
-          .get( // 调用地点查询接口
-            "/baidu/place/v2/suggestion?query=" +
-              this.searchCity[1] +
-              "&region=" +
-              this.searchCity[1] +
-              "&city_limit=true&output=json&ak=psW2eLUlrAlTegyWFIbAGOZgOP2mTYMW"
-          )
-          .then((response) => { // 得到城市中心点经纬度
-            this.searchPoint = response.data.result[0].location;
-            this.searchHotel();
-          });
+          }
+        });
+        regionKeywordSearch.search(this.searchCity[1]);
       }
       // 查找酒店
     },
@@ -585,7 +608,7 @@ export default {
       this.map.clearOverlays(); // 地图清除覆盖物
 
       // 调用接口搜索酒店
-      let url = "/zhunar/api/hotel/get/";
+      let url = BaseUrl.ZHUNAR+"/api/hotel/get/";
       url += this.searchCity[0] + "?";
       url += "city=" + this.searchCity[1] + "&";
       url += "star=" + this.hotelStars + "&";

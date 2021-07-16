@@ -121,7 +121,7 @@
 import SideNav from "../../components/SideNav"
 import BackNav from "../../components/BackNav"
 import {ElMessage} from "element-plus";
-
+import BaseUrl from "../../config"
 export default {
   components: {
     SideNav,
@@ -306,7 +306,7 @@ export default {
   methods: {
     //调用接口- 获取当前审核进度（没有可测试样本）
     getStatus() {
-      this.axios.get('zhunar/api/registration/id/'+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+'/api/registration/id/'+this.hid).then((response) => {
         let rd = response.data
         if(rd!=='') {
           if(rd.audit_status===1) {
@@ -387,19 +387,19 @@ export default {
       let pf = this.permitForm
       let sForm1 = {
         a_user_id: 0,
-        hotel_id: this.hid,
+        hotel_id: parseInt(this.hid),
         sanitation_card: pf.sanitation,
         fire_card: pf.fire,
         catering_card: pf.catering,
       }
-      this.axios.post('zhunar/api/registration/add', sForm1).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+'/api/registration/add', sForm1).then((response) => {
         console.log(response)
       })
       //调用接口- 传入酒店ID、酒店信息，无返回
       let hf = this.hotelForm
       let sForm2 = {
-        hotel_id: this.hid,
-        star_level: hf.star,
+        hotel_id: parseInt(this.hid),
+        star_level: parseInt(hf.star),
         myname: hf.name,
         details: hf.details,
         phone: hf.phone,
@@ -411,16 +411,16 @@ export default {
         lat: 0,
         lng: 0,
       }
-      this.axios.post('zhunar/api/hotel/add', sForm2).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+'/api/hotel/add', sForm2).then((response) => {
         console.log(response)
       })
-      //调用接口- 传入酒店ID、房型信息，无返回
+      //调用接口+ 传入酒店ID、房型信息，无返回
       let rf = this.roomForm
       console.log(rf)
       let sForm3 = {
-        hotel_id: this.hid,
+        hotel_id: parseInt(this.hid),
         room_type: rf.type,
-        area: rf.area,
+        area: parseInt(rf.area),
         windows: rf.facilities.indexOf('窗户')===-1?0:1,
         wifi: rf.facilities.indexOf('WIFI')===-1?0:1,
         smoke: rf.facilities.indexOf('禁烟')===-1?0:1,
@@ -428,7 +428,7 @@ export default {
         room_quantity: parseInt(rf.number)
       }
       console.log(sForm1,sForm2,sForm3)
-      this.axios.post('zhunar/api/roomtype/add', sForm3).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+'/api/roomtype/add', sForm3).then((response) => {
         console.log(response)
       })
     },

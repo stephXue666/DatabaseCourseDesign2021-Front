@@ -3,13 +3,12 @@
     <div style="
         background-image: url(//s2.hdslb.com/bfs/static/blive/blfe-dynamic-web/static/img/background.bc725153.png);
         background-repeat: no-repeat;
-        height: 100%;
         background-attachment: fixed;
         background-size:100% 100%;">
     <el-header style="padding: 0">
       <TopNav/>
     </el-header>
-    <el-main>
+    <el-main style="min-height:580px;">
       <!--这里写代码-->
     <i 
     style="font-size: 25px;margin-bottom: 10px;margin-top: 10px;font-weight: bold"
@@ -74,6 +73,7 @@
 </template>
 
 <script>
+import BaseUrl from "../../config";
 import TopNav from "../../components/TopNav";
 
 export default {
@@ -84,7 +84,7 @@ export default {
      getHistoryTable(){
        //调用接口-列表显示酒店历史足迹：传入（用户ID）返回（酒店简要信息+时间）
        //改
-      this.axios.get('/zhunar/api/track/history/'+this.c_id).then((historyResponse)=>{
+      this.axios.get(BaseUrl.ZHUNAR+'/api/track/history/'+this.c_id).then((historyResponse)=>{
         console.log(historyResponse);
         for(let item of historyResponse.data){
           this.tableData.push({
@@ -110,7 +110,7 @@ export default {
         }).then(() => {
         //调用接口-删除历史足迹：传入（用户ID、酒店ID、时间）返回（null）
         //改
-        this.axios.delete('/zhunar/api/track/delete/'+this.c_id+'/'+hotel_id+'/'+history_time).then(response =>{
+        this.axios.delete(BaseUrl.ZHUNAR+'/api/track/delete/'+this.c_id+'/'+hotel_id+'/'+history_time).then(response =>{
           console.log(response)
           }).finally(()=>{
             this.tableData=[];

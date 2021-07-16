@@ -254,6 +254,7 @@
 import SideNav from "../../components/SideNav"
 import BackNav from "../../components/BackNav"
 import { ElMessage } from 'element-plus'
+import BaseUrl from "../../config"
 export default {
 	components: {
     SideNav,
@@ -361,7 +362,7 @@ export default {
     //获取酒店信息
     getInfo() {
       //调用接口+ 传入酒店ID，返回账户信息
-      this.axios.get("/zhunar/api/hotelaccount/id/"+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/hotelaccount/id/"+this.hid).then((response) => {
         this.accountInfo = {
           hotelID: this.hid,
           userName: response.data.h_user_name,
@@ -372,7 +373,7 @@ export default {
       })
 
       //调用接口+ 传入酒店ID，返回酒店信息
-      this.axios.get("/zhunar/api/hotel/id/"+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/hotel/id/"+this.hid).then((response) => {
         let rd = response.data[0]
         this.hotelInfo = rd
         this.hotelInfo.name = rd.myname
@@ -380,7 +381,7 @@ export default {
       })
 
       //调用接口+ 传入酒店ID，返回资质信息
-      this.axios.get("/zhunar/api/registration/id/"+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+"/api/registration/id/"+this.hid).then((response) => {
         let rd = response.data
         this.permitInfo = {
           adminID: rd.a_user_id,
@@ -391,7 +392,7 @@ export default {
       })
 
       //调用接口+ 传入酒店ID，返回图片url的列表
-      this.axios.get('/zhunar/api/hotelpicture/gethotelpicture/'+this.hid).then((response) => {
+      this.axios.get(BaseUrl.ZHUNAR+'/api/hotelpicture/gethotelpicture/'+this.hid).then((response) => {
         let url = response.data
         for(let i=0;i<3;i++) {
           if(url[i] !== '')
@@ -421,7 +422,7 @@ export default {
             mypassword: form.new,
           }
           //调用接口+ 传入用户ID、新密码，无返回
-          this.axios.put("/zhunar/api/hotelaccount/update", sForm).then((response) => {
+          this.axios.put(BaseUrl.ZHUNAR+"/api/hotelaccount/update", sForm).then((response) => {
             console.log(response)
             ElMessage.success('密码修改成功')
             this.accountInfo.password = this.modifyForm.new
@@ -459,7 +460,7 @@ export default {
           sForm.star_level = this.hotelInfo.star
           console.log(sForm)
           //调用接口+ 传入酒店ID、所有信息，无返回
-          this.axios.put("/zhunar/api/hotel/update", sForm).then((response) => {
+          this.axios.put(BaseUrl.ZHUNAR+"/api/hotel/update", sForm).then((response) => {
             console.log(response)
           })
 

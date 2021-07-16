@@ -36,6 +36,7 @@ import BackNav from "../../components/BackNav";
 
 // 导入图包
 import * as echarts from 'echarts/core';
+import BaseUrl from "../../config";
 import {
   CalendarComponent,
   VisualMapComponent,
@@ -52,6 +53,7 @@ import {
 import {
   CanvasRenderer
 } from 'echarts/renderers';
+import {ElMessage} from "element-plus";
 
 echarts.use(
   [TitleComponent, TooltipComponent, CalendarComponent, VisualMapComponent, DataZoomComponent,
@@ -84,12 +86,18 @@ export default {
   },
 
   mounted(){
-    //this.hid = window.sessionStorage.getItem('hid');
-    this.hid = "100";
+    this.hid = window.sessionStorage.getItem('uid');
+    //this.hid = "100";
     // 调用接口- 流水信息
-    this.axios.get("/zhunar/api/turnover/id/" + this.hid).then(
+    this.axios.get(BaseUrl.ZHUNAR+"/api/turnover/id/" + this.hid).then(
       (response)=>{
         let date, dateYear, yearDataFound;
+        console.log(response)
+        if(response.data.length === 0){
+          this.loadingHotelData = false
+          ElMessage.warning("暂无流水数据！")
+          return
+        }
         this.rawData = response.data
         for(let oneData of this.rawData) // 得到每年的营业额，即初始化tabData
         {
@@ -112,6 +120,7 @@ export default {
         this.tabData.sort((x,y)=>{ // 按year降序排序，使时间最近的年份显示在前面
           return y.year - x.year;
         });
+
         this.tabActiveName = this.tabData[0].tabName;
         
         this.generateChartData(this.tabData[0].year);
@@ -184,7 +193,7 @@ export default {
         tooltip: { // 鼠标悬停时显示信息
           formatter: function(params){
             let date = params.data[0];
-            return '<div>入住率</div>' + '<div>' + params.marker + date.getMonth().toString() + '月' + date.getDate().toString() + '日:' + '<b>' + params.data[1] + '%' + '</b></div>'
+            return '<div>入住率</div>' + '<div>' + params.marker + (date.getMonth()+1).toString() + '月' + date.getDate().toString() + '日:' + '<b>' + params.data[1] + '%' + '</b></div>'
           }
         },
         visualMap: { // 数值对应颜色

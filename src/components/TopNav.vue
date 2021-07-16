@@ -1,11 +1,14 @@
 <template>
   <div style="background-color: #409EFF; height: 60px">
     <el-row>
-      <el-col :span="6">
-        <h2 style="color: white; margin-top: 10px">酒店预定平台</h2>
+      <el-col :span="8">
+        <el-space>
+          <el-image :src="logoURL" style="width: 50px"></el-image>
+          <h2 style="color: white; margin-top: 10px">住哪儿-酒店预定平台</h2>
+        </el-space>
       </el-col>
       <!--未登录状态的导航栏-->
-      <el-col :offset="13" :span="5">
+      <el-col :offset="11" :span="5">
         <el-menu v-if="!loginStatus" default-active='/home' mode="horizontal" background-color="#409EFF"
                  text-color="#fff" active-text-color="#ffd04b" style="border-bottom: 0" router>
         <el-menu-item index="/home">首页</el-menu-item>
@@ -92,10 +95,11 @@
 
 <script>
 import {ElMessage} from "element-plus";
-
+import BaseUrl from "../config"
 export default {
   data() {
     return {
+      logoURL: require('../assets/logo.png'),
       activeIndex: '',
       loginStatus: false,
       dialogVisible: false,
@@ -122,7 +126,7 @@ export default {
       switch (status) {
         case null:
           window.sessionStorage.setItem('uid', '0')
-              break
+          break
         case '0':
           break
         //若用户id不为0，则设定登录状态为true
@@ -138,7 +142,7 @@ export default {
 
       //调用接口-判断用户是否是第一次查询：传入用户id -返回管理员id（存储到admin_id中）
       //改
-        this.axios.get('/zhunar'+'/api/chatrecord/judgefirst/'+window.sessionStorage.getItem('uid')).then((response)=>{
+        this.axios.get(BaseUrl.ZHUNAR+'/api/chatrecord/judgefirst/'+window.sessionStorage.getItem('uid')).then((response)=>{
         this.admin_id = response.data;
       })
 
@@ -155,7 +159,7 @@ export default {
     getMessageData(){
       //调用接口-查询聊天记录：请求参数：用户id（window.sessionStorage.getItem'uid'） -返回：两者的聊天记录ChatRecord（list
       //改
-      this.axios.get('/zhunar'+'/api/chatrecord/c_user_id/'+window.sessionStorage.getItem('uid')).then((chatResponse)=>{
+      this.axios.get(BaseUrl.ZHUNAR+'/api/chatrecord/c_user_id/'+window.sessionStorage.getItem('uid')).then((chatResponse)=>{
       console.log(chatResponse);
       this.messageData=[];
       for(let item of chatResponse.data){
@@ -168,6 +172,7 @@ export default {
     handleSendMessage(){
       //点击“发送”按钮或按回车，发送textarea中的文本，同时清空输入栏并刷新一次聊天信息。
       //调用接口-增加聊天记录：请求参数：ChatRecord除了时间以外的所有参数{admin_id,window.sessionStorage.getItem('uid'),'0',textarea,} - 返回：success
+      if(this.textarea !== ''){
       let message={
         a_user_id:this.admin_id,
         c_user_id:parseInt(window.sessionStorage.getItem('uid')),//改
@@ -175,10 +180,11 @@ export default {
         details:this.textarea,
       }
       console.log(window.sessionStorage.getItem('uid'));
-      this.axios.post('/zhunar'+'/api/chatrecord/add',message);
+      this.axios.post(BaseUrl.ZHUNAR+'/api/chatrecord/add',message);
       console.log(this.textarea);
       this.textarea = '';
       this.getMessageData();
+      }
     },
   },
 }

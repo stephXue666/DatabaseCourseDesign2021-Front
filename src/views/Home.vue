@@ -10,7 +10,7 @@
     </el-header>
     <el-main>
       <el-container style="height: 312px; margin-left: 9%; margin-top:30px">
-        <el-card class="box-card" style="borfed-radius:10px; width: 33%; height: 97%; background: rgba(256, 256, 256, 0.85);">
+        <el-card class="box-card" style="borfed-radius:10px; width: 33%; height: 96%; background: rgba(256, 256, 256, 0.85);">
           <el-form ref="form" :model="form" :rules="rules">
             <h2 style="margin: 0px">酒店搜索</h2>
             <div style="text-align: left; margin:23px 5px 20px;">
@@ -41,7 +41,7 @@
             >
           </el-form>
         </el-card>
-        <el-carousel style="height: 100%; width: 53.5%; margin-left: 3%;">
+        <el-carousel style="height: 100%; width: 53.7%; margin-left: 3%;">
           <el-carousel-item v-for="item in imagelist.length" :key="item">
             <el-image
               style="height: 100%; width: 100%; border-radius: 5px"
@@ -50,7 +50,7 @@
           </el-carousel-item>
         </el-carousel>
       </el-container>
-      <h2 style="text-align: left; font-size: 30px; margin-left: 9%">
+      <h2 style="text-align: left; font-size: 30px; margin-left: 9%; margin-top:17px">
         酒店推荐
       </h2>
       <el-container
@@ -295,26 +295,36 @@ export default {
         {
           value: "北京市",
           label: "北京",
-          children: [{ value: "北京市", label: "北京" }],
+          children: [{ value: "北京市", label: "北京市" }],
         },
         {
           value: "上海市",
           label: "上海",
-          children: [{ value: "上海市", label: "上海" }],
+          children: [{ value: "上海市", label: "上海市" }],
         },
         {
           value: "广东省",
           label: "广东",
           children: [
-            { value: "广州市", label: "广州" },
-            { value: "深圳市", label: "深圳" },
+            { value: "广州市", label: "广州市" },
+            { value: "深圳市", label: "深圳市" },
           ],
         },
         {
           value: "江苏省",
           label: "江苏",
-          children: [{ value: "南京市", label: "南京" }],
+          children: [{ value: "南京市", label: "南京市" }],
         },
+        {
+          value:"海南省",
+          label:"海南",
+          children:[{value:"三亚市",label:"三亚市"}]
+        },
+        {
+          value:"重庆市",
+          label:"重庆",
+          children:[{value:"重庆市",label:"重庆市"}]
+        }
       ],
     };
   },
@@ -322,7 +332,7 @@ export default {
     onSubmit() {
       console.log(this.place[0],this.place[1]);
       if (this.place.length == 0) {
-        ElMessage.error("亲,请输入目的地哦");
+        ElMessage.error("亲,请输入城市哦");
       } else {
         this.$router.push({
           path: "./result",

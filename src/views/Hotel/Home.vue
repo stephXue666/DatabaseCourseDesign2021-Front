@@ -11,7 +11,7 @@
         <el-row :gutter="60" class="el-row" type="flex" style="width: 1200px;margin-left: 40px;margin-top: 40px;">
           <el-col :span="30">
             <!--第一张卡片，显示“今日所有房型剩余量”-->
-            <el-card class="box-card" style="width: 520px;height: 400px;" shadow="hover">
+            <el-card class="box-card" style="width: 520px;height: 400px;background-color:rgba(255,255,255,0.6)" shadow="hover">
               <h1 style="text-align:left">现在是 {{showTime}}，房源剩余：</h1>
               <!--"房型剩余量"表格，"point"用来实现光标在此悬浮时显示为"小手"-->
               <el-table  class="point" 
@@ -28,7 +28,7 @@
             </el-card>
           </el-col>
           <el-col :span="30"> 
-        <el-card class="box-card" style="width: 520px;height: 400px;" shadow="hover">
+        <el-card class="box-card" style="width: 520px;height: 400px;background-color:rgba(255,255,255,0.6)" shadow="hover">
           <div id="d1" style="margin-top: 25px ;">
             <i 
             style="icon-align:left;font-size: 30px;margin-bottom: 10px;margin-top: 10px;color: #1E90FF;" 
@@ -54,7 +54,7 @@
 <script>
 import SideNav from "../../components/SideNav"
 import BackNav from "../../components/BackNav"
-
+import BaseUrl from "../../config"
 export default {
 	components: {
     BackNav,
@@ -63,7 +63,7 @@ export default {
   data() {
     return {
       bg: {   //背景样式
-        backgroundImage: "url(" + require("../../assets/loginBackground.jpg") + ")",
+        backgroundImage: "url(" + require("../../assets/3.jpg") + ")",
         backgroundRepeat: "no-repeat",
         backgroundSize: "100% 100%",
       },
@@ -79,22 +79,24 @@ export default {
   created(){
     //调用接口-显示昨日流水和入住率：传入（酒店编号）返回（昨日总体流水，整体入住率）
     //改
-    this.axios.get('/zhunar'+'/api/turnover/yid/'+this.h_id).then((response)=>{
+    this.axios.get(BaseUrl.ZHUNAR+'/api/turnover/yid/'+this.h_id).then((response)=>{
         this.yesterdayEarning=response.data.earning;
         this.yesterdayOccupancyRate=response.data.occupancy_rate*100;
-        console.log(response);
+        console.log(response.data);
       })
 
     this.timer=setInterval(this.showTimes, 1000);
     //调用接口-显示今日所有房型剩余数量：传入（酒店编号）返回（房间类型数，房间类型：数量	/总数）
     //改
-    this.axios.get('/zhunar/api/hotel/room?id='+this.h_id).then((remainResponse)=>{
+    this.axios.get(BaseUrl.ZHUNAR+'/api/hotel/room?id='+this.h_id).then((remainResponse)=>{
+      if(remainResponse==='failure') this.tableData=[];
+      else
         for(let item of remainResponse.data){
           this.tableData.push({
           roomType: item.roomtype,
           totalSpareRoomNum: item.remaining_num+'/'+item.total_num,
         });
-      }
+      }      
       console.log(remainResponse);
     })
   },
@@ -115,7 +117,7 @@ export default {
     //单击表格，"跳转"到"信息管理"页面
     //改
     handleJumpToInfo(row, event, column){
-      this.$router.push('/hotel/info');
+      this.$router.push('/hotel/room');
       console.log(row, event, column);
     },
     //改

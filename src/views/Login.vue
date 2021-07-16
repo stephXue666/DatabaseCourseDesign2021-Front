@@ -1,7 +1,8 @@
 <template>
   <div :style ="bg">
     <!--登录窗口-->
-    <el-card v-if="isRegistered" style="margin-left: 33%; margin-right: 33%; margin-top: 10%">
+    <el-card v-if="isRegistered" style="margin-left: 33%; margin-right: 33%; margin-top: 10%;background-color: rgba(255,255,255,0.5)">
+      <el-page-header @back="$router.push('/home')" title="返回首页"/>
       <h2>用户登录</h2>
       <el-form :model="loginForm" status-icon ref="loginForm" label-width="80px"
                style="margin-left: 7%; margin-right: 13%" :rules="rules">
@@ -25,7 +26,8 @@
       </el-form>
     </el-card>
     <!--注册窗口-->
-    <el-card v-else style="margin-left: 33%; margin-right: 33%; margin-top: 10%">
+    <el-card v-else style="margin-left: 33%; margin-right: 33%; margin-top: 10%;background-color: rgba(255,255,255,0.5)">
+      <el-page-header @back="$router.push('/home')" title="返回首页"/>
       <h2>用户注册</h2>
       <el-form :model="registerForm" status-icon ref="registerForm" label-width="80px"
                style="margin-left: 7%; margin-right: 13%" :rules="rules">
@@ -87,7 +89,7 @@
 
 <script>
 import {ElMessage} from 'element-plus'
-
+import BaseUrl from "../config"
 export default {
   data() {
     //登录账户验证规则
@@ -117,7 +119,7 @@ export default {
         switch (this.registerForm.type) {
           case '住户':
             //调用接口+ 给账号密码，返回是否有相同账号
-            url = 'zhunar/api/customeraccount/username/'
+            url = BaseUrl.ZHUNAR+'/api/customeraccount/username/'
             url = url + value
             this.axios.post(url).then((response) => {
               isUsed = !response.data
@@ -131,7 +133,7 @@ export default {
             break
           case '酒店':
             //调用接口+ 给账号密码，返回是否有相同账号
-            url = 'zhunar/api/hotelaccount/Login/'
+            url = BaseUrl.ZHUNAR+'/api/hotelaccount/Login/'
             url = url + value + '/' + '66666'
             this.axios.get(url).then((response) => {
               console.log(response.data)
@@ -212,7 +214,7 @@ export default {
       isRegistered: true,   //是否已注册，控制两种窗口的切换
       moreInfo: false,
       bg: {   //登录注册页面的背景样式
-        backgroundImage: "url(" + require("../assets/loginBackground.jpg") + ")",
+        backgroundImage: "url(" + require("../assets/2.png") + ")",
         backgroundRepeat: "no-repeat",
         backgroundSize: "100% 100%",
         height: "700px",
@@ -274,7 +276,7 @@ export default {
     customerLogin(account, password) {
       console.log(account, password)
       //调用接口+ 传入账号密码，返回是否正确、用户ID
-      let url = 'zhunar/api/customeraccount/Login/'
+      let url = BaseUrl.ZHUNAR+'/api/customeraccount/Login/'
       url =  url + account + '/' +password
       this.axios.post(url).then((response) => {
         console.log(response.data)
@@ -291,7 +293,7 @@ export default {
     //酒店登录
     hotelLogin(account, password) {
       //调用接口+ 传入账号密码，返回是否正确、是否通过审核、酒店ID
-      let url = 'zhunar/api/hotelaccount/Login/'
+      let url = BaseUrl.ZHUNAR+'/api/hotelaccount/Login/'
       url =  url + account + '/' +password
       this.axios.get(url).then((response) => {
         let rd = response.data
@@ -318,7 +320,7 @@ export default {
         mypassword: password,
       }
       console.log(sForm)
-      this.axios.post('zhunar/api/administeraccount/Login', sForm).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+'/api/administeraccount/Login', sForm).then((response) => {
         if(response.data===-1) {
           ElMessage.error('管理员ID或密码错误！')
         }
@@ -366,11 +368,11 @@ export default {
             nickname: 'null',
           }
           console.log(sForm)
-          this.axios.post('zhunar/api/customeraccount/register', sForm).then((response) => {
+          this.axios.post(BaseUrl.ZHUNAR+'/api/customeraccount/register', sForm).then((response) => {
             console.log(response)
             ElMessage.success('填写完成，已为您自动登录，3S后自动返回首页！')
             //调用接口+ 传入账号密码，返回用户ID
-            let url = 'zhunar/api/customeraccount/Login/'
+            let url = BaseUrl.ZHUNAR+'/api/customeraccount/Login/'
             url =  url + sForm.c_user_name + '/' +sForm.mypassword
             this.axios.post(url).then((res) => {
               let uid = res.data
@@ -394,7 +396,7 @@ export default {
         mypassword: password,
       }
       console.log(sForm)
-      this.axios.post('zhunar/api/hotelaccount/add', sForm).then((response) => {
+      this.axios.post(BaseUrl.ZHUNAR+'/api/hotelaccount/add', sForm).then((response) => {
         ElMessage.success('注册成功！3S后将自动登录！')
         window.sessionStorage.setItem('uid', response.data.hotel_id)
         setTimeout(() => {
